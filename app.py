@@ -3,7 +3,7 @@ import base64
 from constants import buttons_style
 
 st.set_page_config(
-    page_title="Rijksmuseum Artist Chat • Prototype",
+    page_title="Rijksmuseum - Prototype",
     page_icon="figs/favicon.ico",
     layout="wide"
 )

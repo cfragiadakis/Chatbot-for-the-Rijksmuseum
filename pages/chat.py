@@ -1,7 +1,10 @@
 import streamlit as st
-from constants import chat_style, buttons_style
+from constants import chat_style
 
-st.set_page_config(layout="wide")
+st.set_page_config(layout="wide",
+    page_title="The Milkmaid - Prototype",
+    page_icon="figs/favicon.ico",
+)
 st.markdown(
     chat_style,
     unsafe_allow_html=True
