@@ -1,12 +1,12 @@
 import streamlit as st
 import base64
+from constants import buttons_style
 
 st.set_page_config(
     page_title="Rijksmuseum Artist Chat • Prototype",
     layout="wide"
 )
 
-# ------------ HELPER: CONVERT IMAGE TO BASE64 ------------
 def get_base64(file_path):
     with open(file_path, "rb") as f:
         data = f.read()
@@ -60,23 +60,7 @@ for i in range(32):
 
 col1, col2, col3 = st.columns([0.1, 0.65, 0.25])
 
-st.markdown("""
-    <style>
-    div.stButton > button:first-child {
-        background-color: #cc4c28;
-        color: white;
-        padding: 0.6em 1.2em;
-
-        transition: 0.2s;
-        font-size: 4px;
-    }
-
-    div.stButton > button:hover {
-        background-color: white;
-        color: black;
-    }
-    </style>
-    """, unsafe_allow_html=True)
+st.markdown(buttons_style, unsafe_allow_html=True)
 
 with col3:
     if st.button("Start Chat"):
