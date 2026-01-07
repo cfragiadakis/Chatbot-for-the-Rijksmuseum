@@ -6,3 +6,6 @@ itsdangerous
 openai
 python-dotenv
 starlette
+lxml
+pathlib
+pyyaml

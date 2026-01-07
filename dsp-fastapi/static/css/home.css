@@ -5,7 +5,7 @@ body {
   margin: 0;
   font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
   min-height: 100vh;
-  background: url("/static/figs/milkmaid.png") center/cover no-repeat;
+  
 }
 
 /* A subtle dark overlay to keep text readable */

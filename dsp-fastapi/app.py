@@ -1,5 +1,4 @@
 from __future__ import annotations
-
 from fastapi import FastAPI, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -8,9 +7,22 @@ from starlette.middleware.sessions import SessionMiddleware
 import os
 from dotenv import load_dotenv
 from openai import OpenAI
+import yaml
+from pathlib import Path
+from style_loader import load_letter_texts, build_style_examples
 
 # Load environment variables from .env file
 load_dotenv()
+
+# Load configuration
+cfg = yaml.safe_load(Path("configs/config.yml").read_text(encoding="utf-8"))
+
+STYLE_TEXTS = []
+STYLE_EXAMPLES = []
+
+if cfg.get("style_examples", {}).get("enabled", False):
+    STYLE_TEXTS = load_letter_texts(cfg)
+    STYLE_EXAMPLES = build_style_examples(cfg, STYLE_TEXTS)
 
 # FastAPI app setup with OpenAI client
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -69,6 +81,35 @@ def trim_history(messages: list[dict], max_turns: int = 20) -> list[dict]:
     return system + rest[-(max_turns * 2):]
 
 
+
+def build_messages(cfg: dict, style_examples: list[str], history: list[dict], user_text: str) -> list[dict]:
+    system_prompt = cfg["persona"]["system_prompt"]
+
+    anti_copy = "\n".join(f"- {r}" for r in cfg["style_examples"]["anti_copy_rules"])
+    examples = "\n\n".join([f"EXAMPLE {i+1}:\n{ex}" for i, ex in enumerate(style_examples)])
+
+    style_block = f"""
+    Use the following excerpts ONLY to imitate writing style (tone, rhythm, word choice).
+    Do not copy text directly.
+
+    ANTI-COPY RULES:
+    {anti_copy}
+
+    STYLE EXAMPLES:
+    {examples}
+    """.strip()
+   
+
+    # Important: keep 'history' free of system/developer roles if you already add them here
+    return [
+        {"role": "system", "content": system_prompt},
+        {"role": "developer", "content": style_block},
+        *history,
+        {"role": "user", "content": user_text},
+    ]
+
+
+
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     # Equivalent to Streamlit's home page with background + Start Chat button
@@ -109,7 +150,8 @@ async def chat_post(
     if user_input and user_input.strip():
         messages.append({"role": "user", "content": user_input.strip()})
         try:
-            assistant_text = generate_reply(trim_history(messages))
+            messages_for_llm = build_messages(cfg, STYLE_EXAMPLES, messages, user_input.strip())
+            assistant_text = generate_reply(messages_for_llm)
         except Exception as e:
             assistant_text = f"(LLM error) {type(e).__name__}: {e}"
 
@@ -117,3 +159,49 @@ async def chat_post(
         request.session["messages"] = messages
 
     return RedirectResponse(url="/chat", status_code=303)
+
+@app.get('/vangogh', response_class=HTMLResponse)
+async def vangogh(request: Request):
+    messages = get_messages(request)
+    return templates.TemplateResponse(
+        "vangogh.html",
+        {"request": request, "messages": messages, "presets": list(PRESETS.keys())},
+    )
+
+@app.get('/chatvg', response_class=HTMLResponse)
+async def chat_get(request: Request):
+    messages = get_messages(request)
+    return templates.TemplateResponse(
+        "chat_vg.html",
+        {"request": request, "messages": messages, "presets": list(PRESETS.keys())},
+    )
+
+@app.post('/chatvg', response_class=HTMLResponse)
+async def chat_post(
+    request: Request,
+    user_input: str | None = Form(None),
+    preset: str | None = Form(None),
+    action: str | None = Form(None),
+):
+    messages = get_messages(request)
+    if user_input and user_input.strip():
+        messages.append({"role": "user", "content": user_input.strip()})
+        try:
+            messages_for_llm = build_messages(cfg, STYLE_EXAMPLES, messages, user_input.strip())
+            assistant_text = generate_reply(messages_for_llm)
+        except Exception as e:
+            assistant_text = f"(LLM error) {type(e).__name__}: {e}"
+
+        messages.append({"role": "assistant", "content": assistant_text})
+        request.session["messages"] = messages
+
+    return RedirectResponse(url="/chatvg", status_code=303)
+
+# Debug endpoint to check if style examples are loaded
+@app.get("/debug/style")
+def debug_style():
+    return {
+        "num_examples": len(STYLE_EXAMPLES),
+        "preview": STYLE_EXAMPLES[0][:250] if STYLE_EXAMPLES else None,
+        "folder": cfg.get("style_examples", {}).get("folder")
+    }
