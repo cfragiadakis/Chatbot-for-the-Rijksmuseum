@@ -1,0 +1,74 @@
+/* Base */
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  min-height: 100vh;
+  background: url("/static/figs/milkmaid.png") center/cover no-repeat;
+}
+
+/* A subtle dark overlay to keep text readable */
+.overlay {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-end;
+  padding: clamp(16px, 4vw, 48px);
+  gap: 12px;
+
+  background: linear-gradient(
+    to top,
+    rgba(0,0,0,0.55) 0%,
+    rgba(0,0,0,0.15) 45%,
+    rgba(0,0,0,0.00) 100%
+  );
+}
+
+h1 {
+  margin: 0;
+  color: #fff;
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  line-height: 1.1;
+  text-shadow: 0 0 14px rgba(0,0,0,0.7);
+}
+
+.start-btn {
+  appearance: none;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 18px;
+  font-weight: 700;
+  cursor: pointer;
+
+  background: #cc4c28;
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.25);
+}
+
+.start-btn:hover {
+  background: #fff;
+  color: #111;
+}
+
+/* Mobile: center everything + bigger tap target */
+@media (max-width: 640px) {
+  .overlay {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 24px;
+  }
+
+  .start-btn {
+    width: min(320px, 90vw);
+    padding: 14px 18px;
+    font-size: 1rem;
+  }
+}
+
+/* Very small screens */
+@media (max-width: 360px) {
+  h1 { font-size: 1.4rem; }
+}

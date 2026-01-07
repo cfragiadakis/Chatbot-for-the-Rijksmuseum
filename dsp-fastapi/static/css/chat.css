@@ -1,0 +1,188 @@
+/* --------- Base / Reset --------- */
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: rgb(49, 51, 63);
+  color: #e0e0e0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+}
+
+.page {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: clamp(12px, 2.5vw, 18px);
+}
+
+/* --------- Topbar --------- */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;              /* allow wrap on small screens */
+}
+
+.topbar h2 {
+  margin: 0;
+  font-size: clamp(1.1rem, 3vw, 1.5rem);
+}
+
+.back-btn {
+  background: #cc4c28;
+  border: none;
+  color: #000;
+  padding: 10px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* --------- Chatbox --------- */
+.chatbox {
+  margin-top: 16px;
+  background: rgba(0,0,0,0.25);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 12px;
+  padding: 14px;
+
+  /* responsive height */
+  min-height: 320px;
+  height: min(55vh, 520px);
+  overflow-y: auto;
+}
+
+/* Message bubbles */
+.bubble {
+  max-width: 80%;
+  margin: 10px 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+}
+
+.bubble .label {
+  font-size: 12px;
+  opacity: 0.8;
+  margin-bottom: 4px;
+}
+
+.bubble.user {
+  background: #2b6cb0;
+  margin-left: auto;
+}
+
+.bubble.bot {
+  background: #111;
+  border: 1px solid rgba(255,255,255,0.12);
+}
+
+/* --------- Presets --------- */
+.presets {
+  margin-top: 16px;
+}
+
+.presets h3 {
+  margin: 0 0 10px 0;
+  font-size: 1rem;
+}
+
+.preset-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.preset-btn {
+  width: 100%;
+  background: #cc4c28;
+  border: none;
+  padding: 10px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 700;
+  text-align: left;
+}
+
+.preset-btn:hover {
+  background: #fff;
+  color: #111;
+}
+
+/* --------- Input --------- */
+.input-area {
+  margin-top: 16px;
+}
+
+.input-form {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.input-form input {
+  flex: 1;
+  min-width: 0; /* prevents overflow in flex rows */
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: #000;
+  color: #e0e0e0;
+}
+
+.input-form button {
+  background: #cc4c28;
+  border: none;
+  padding: 12px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+/* --------- Responsive Breakpoints --------- */
+
+/* Tablets: 2-column preset grid */
+@media (max-width: 900px) {
+  .preset-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .bubble {
+    max-width: 88%;
+  }
+}
+
+/* Phones: 1-column preset grid + full-width bubbles + stack input */
+@media (max-width: 640px) {
+  .preset-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .bubble {
+    max-width: 100%;
+  }
+
+  .chatbox {
+    height: min(52vh, 520px);
+    padding: 12px;
+  }
+
+  .input-form {
+    flex-direction: column;
+  }
+
+  .input-form button {
+    width: 100%;
+  }
+}
+
+/* Very small phones */
+@media (max-width: 380px) {
+  .back-btn {
+    padding: 9px 10px;
+  }
+  .preset-btn {
+    padding: 10px;
+  }
+}
