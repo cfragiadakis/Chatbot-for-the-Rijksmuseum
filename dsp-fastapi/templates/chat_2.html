@@ -541,7 +541,7 @@
     <!-- Header -->
     <header class="chat-header">
         <div class="header-left">
-            <a href="/" class="back-btn">
+            <a href="/chat/{{ artwork.id }}/reset" class="back-btn">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M19 12H5M12 19l-7-7 7-7"/>
                 </svg>
@@ -565,7 +565,7 @@
                     <span class="counter-number">{{ questions_remaining }}</span> question{% if questions_remaining != 1 %}s{% endif %} left
                 </span>
             </div>
-            <a href="/" class="logo">RIJKSMUSEUM</a>
+            <a href="/chat/{{ artwork.id }}/reset" class="logo">RIJKSMUSEUM</a>
         </div>
     </header>
 
@@ -600,7 +600,7 @@
             </div>
             <h3>Question Limit Reached</h3>
             <p>You've used all 5 questions with {{ artwork.artist }}. Start a new conversation or explore another artwork.</p>
-            <a href="/" class="new-chat-btn">
+            <a href="/chat/{{ artwork.id }}/reset" class="new-chat-btn">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
                     <path d="M3 3v5h5"></path>

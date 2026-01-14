@@ -318,6 +318,13 @@ async def home(request: Request):
     return templates.TemplateResponse("index_2.html", {"request": request})
 
 
+@app.get("/chat/{artwork_id}/reset")
+async def chat_reset(request: Request, artwork_id: str):
+    """Reset chat history and redirect to home."""
+    reset_messages(request, artwork_id)
+    return RedirectResponse(url="/", status_code=303)
+
+
 @app.get("/chat/{artwork_id}", response_class=HTMLResponse)
 async def chat_get(request: Request, artwork_id: str):
     """Display chat page for specific artwork."""
