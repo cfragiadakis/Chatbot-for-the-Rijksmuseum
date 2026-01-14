@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>The Milkmaid - Rijksmuseum</title>
+    <link rel="icon" href="/static/figs/favicon.ico">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Calibre', 'Helvetica Neue', Arial, sans-serif;
+            background: #f8f8f8;
+            color: #1a1a1a;
+        }
+
+        /* Rijksmuseum-style header */
+        .rijks-header {
+            background: #1a1a1a;
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .rijks-logo {
+            font-size: 1.2rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .rijks-nav {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .rijks-nav a {
+            color: white;
+            text-decoration: none;
+            font-size: 0.95rem;
+            transition: opacity 0.2s;
+        }
+
+        .rijks-nav a:hover {
+            opacity: 0.7;
+        }
+
+        /* Main content area */
+        .artwork-container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: 1fr 500px;
+            gap: 3rem;
+            align-items: start;
+        }
+
+        /* Left side - Image */
+        .artwork-image-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 2px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .artwork-image {
+            width: 100%;
+            display: block;
+            border-radius: 2px;
+        }
+
+        /* Right side - Info */
+        .artwork-info-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 2px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .artwork-title {
+            font-size: 2rem;
+            font-weight: 400;
+            margin-bottom: 0.5rem;
+            color: #1a1a1a;
+        }
+
+        .artwork-artist {
+            font-size: 1.3rem;
+            color: #666;
+            margin-bottom: 2rem;
+        }
+
+        .artwork-details {
+            border-top: 1px solid #e0e0e0;
+            padding-top: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .detail-label {
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        .detail-value {
+            color: #1a1a1a;
+            font-weight: 500;
+            text-align: right;
+        }
+
+        /* Chat with artist button - Rijksmuseum style */
+        .chat-cta {
+            background: linear-gradient(135deg, #8b2635 0%, #c41230 100%);
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 1.2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 2px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 1.5rem;
+        }
+
+        .chat-cta:hover {
+            background: linear-gradient(135deg, #c41230 0%, #8b2635 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(139, 38, 53, 0.4);
+        }
+
+        .chat-cta::before {
+            content: '💬 ';
+            margin-right: 0.5rem;
+        }
+
+        .description-section {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .description-section h3 {
+            font-size: 1.2rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+            color: #1a1a1a;
+        }
+
+        .description-text {
+            line-height: 1.7;
+            color: #444;
+            font-size: 0.95rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .artwork-container {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .rijks-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+
+            .rijks-nav {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .artwork-container {
+                padding: 0 1rem;
+            }
+        }
+
+        /* Feature badge */
+        .beta-badge {
+            display: inline-block;
+            background: #ffd700;
+            color: #1a1a1a;
+            padding: 0.3rem 0.8rem;
+            border-radius: 3px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-left: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Rijksmuseum Header -->
+    <div class="rijks-header">
+        <div class="rijks-logo">RIJKSMUSEUM</div>
+        <nav class="rijks-nav">
+            <a href="#">Collection</a>
+            <a href="#">What's on</a>
+            <a href="#">Visit</a>
+            <a href="#">Support us</a>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="artwork-container">
+        <!-- Left: Artwork Image -->
+        <div class="artwork-image-section">
+            <img src="/static/figs/milkmaid.png" alt="The Milkmaid" class="artwork-image">
+        </div>
+
+        <!-- Right: Artwork Information -->
+        <div class="artwork-info-section">
+            <h1 class="artwork-title">The Milkmaid</h1>
+            <p class="artwork-artist">Johannes Vermeer, c. 1658 - c. 1660</p>
+
+            <div class="artwork-details">
+                <div class="detail-row">
+                    <span class="detail-label">Type</span>
+                    <span class="detail-value">Painting</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Material</span>
+                    <span class="detail-value">Oil on canvas</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Dimensions</span>
+                    <span class="detail-value">45.5 cm × 41 cm</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Object number</span>
+                    <span class="detail-value">SK-A-2344</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Collection</span>
+                    <span class="detail-value">Paintings</span>
+                </div>
+            </div>
+
+            <!-- Chat with Artist Button -->
+            <form method="get" action="/chat">
+                <button class="chat-cta" type="submit">
+                    Chat with the Artist
+                    <span class="beta-badge">Beta</span>
+                </button>
+            </form>
+
+            <!-- Description -->
+            <div class="description-section">
+                <h3>About this artwork</h3>
+                <p class="description-text">
+                    A kitchen maid pours milk, entirely absorbed in her work. Except for the stream 
+                    of milk, everything else is still. Vermeer took this simple everyday activity 
+                    and made it the subject of a painting. The simple, almost timeless image 
+                    shows his mastery of light and color.
+                </p>
+            </div>
+
+            <div class="description-section">
+                <h3>Interactive Experience</h3>
+                <p class="description-text">
+                    Our new AI-powered feature allows you to have a conversation with Johannes Vermeer 
+                    himself. Ask about his techniques, the story behind this masterpiece, or his 
+                    artistic philosophy. Experience history through dialogue.
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
