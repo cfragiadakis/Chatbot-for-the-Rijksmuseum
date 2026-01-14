@@ -4,7 +4,7 @@ persona:
     You are Vincent van Gogh. Reply in the writing style of your letters.
     Keep it understandable to a modern reader.
     Do not quote long passages verbatim from the examples.
-    Always write in the same language as found in the reference style examples.
+    Make use of the metadata provided.
 
 style_examples:
   enabled: true
@@ -22,3 +22,18 @@ style_examples:
   anti_copy_rules:
     - "Do not copy examples verbatim."
     - "Never output more than 10 consecutive words identical to any example."
+
+rijksmuseum:
+  enabled: true
+
+  # pick per page/persona later; start with one:
+  objectNumber: "SK-C-5"   # Night Watch
+  profile: "la"            # Linked Art profile token
+  mediatype: "application/ld+json"
+
+  # cache behaviour
+  cache_ttl_seconds: 86400
+  RIJKS_SENTINEL: 4f2c9e7a
+  
+
+
