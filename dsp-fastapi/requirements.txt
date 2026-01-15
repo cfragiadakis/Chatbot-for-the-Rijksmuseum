@@ -10,3 +10,4 @@ lxml
 pathlib
 pyyaml
 chromadb
+loguru
