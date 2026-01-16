@@ -586,6 +586,11 @@
                     </div>
                 {% endif %}
             {% endfor %}
+            <div class="typing-indicator" id="typing-indicator">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
         </div>
 
         <!-- Suggested Questions -->
@@ -623,8 +628,9 @@
 
         <!-- Input Area -->
         <div class="input-area">
-            <form method="post" action="/chat/{{ artwork.id }}" class="input-form">
+            <form id="chat-form" class="input-form">
                 <input 
+                    id="user-input"
                     type="text" 
                     name="user_input" 
                     placeholder="Ask {{ artwork.artist }} anything..." 
@@ -640,15 +646,169 @@
         </div>
         {% endif %}
     </main>
-
-    <script>
-        // Scroll to bottom on page load
-        (function() {
-            const chatbox = document.getElementById('chatbox');
-            if (chatbox) {
-                chatbox.scrollTop = chatbox.scrollHeight;
+<script>
+    console.log("JavaScript loaded!");
+    
+    const artworkId = "{{ artwork.id }}";
+    const artistName = "{{ artwork.artist }}";
+    const chatbox = document.getElementById('chatbox');
+    const form = document.getElementById('chat-form');
+    const userInput = document.getElementById('user-input');
+    const submitButton = form.querySelector('button[type="submit"]');
+    const typingIndicator = document.getElementById('typing-indicator');
+    const questionsCounter = document.getElementById('questions-counter');
+    
+    console.log("Elements found:", {
+        form: form,
+        userInput: userInput,
+        submitButton: submitButton,
+        artworkId: artworkId
+    });
+    
+    // Scroll to bottom on load
+    function scrollToBottom() {
+        chatbox.scrollTop = chatbox.scrollHeight;
+    }
+    scrollToBottom();
+    
+    // Add message to chatbox
+    function addMessage(role, content) {
+        console.log("Adding message:", role, content);
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${role}`;
+        
+        const label = document.createElement('strong');
+        label.textContent = role === 'user' ? 'You:' : `${artistName}:`;
+        
+        const text = document.createElement('span');
+        text.textContent = content;
+        
+        messageDiv.appendChild(label);
+        messageDiv.appendChild(text);
+        chatbox.appendChild(messageDiv);
+        
+        scrollToBottom();
+    }
+    
+    // Show typing indicator
+    function showTyping() {
+        typingIndicator.classList.add('active');
+        scrollToBottom();
+    }
+    
+    // Hide typing indicator
+    function hideTyping() {
+        typingIndicator.classList.remove('active');
+    }
+    
+    // Update questions counter
+    function updateCounter(remaining) {
+        if (questionsCounter) {
+            questionsCounter.textContent = `Questions remaining: ${remaining}`;
+        } else {
+            console.warn("Questions counter element not found");
+        }
+    }
+    
+    // Show error message
+    function showError(message) {
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'error-message';
+        errorDiv.textContent = message;
+        chatbox.appendChild(errorDiv);
+        scrollToBottom();
+        
+        setTimeout(() => errorDiv.remove(), 5000);
+    }
+    
+    // Handle form submission
+    form.addEventListener('submit', async function(e) {
+        console.log("Form submitted!");
+        e.preventDefault();
+        
+        const message = userInput.value.trim();
+        console.log("Message:", message);
+        
+        if (!message) {
+            console.log("Empty message, returning");
+            return;
+        }
+        
+        // Add user message immediately
+        addMessage('user', message);
+        
+        // Clear and disable input
+        userInput.value = '';
+        userInput.disabled = true;
+        submitButton.disabled = true;
+        
+        // Show typing indicator
+        showTyping();
+        
+        try {
+            // Send to API
+            const formData = new FormData();
+            formData.append('user_message', message);
+            
+            console.log("Sending POST to:", `/chat/${artworkId}`);
+            
+            const response = await fetch(`/chat/${artworkId}`, {
+                method: 'POST',
+                body: formData,
+                credentials: 'same-origin'
+            });
+            
+            console.log("Response status:", response.status);
+            
+            const data = await response.json();
+            console.log("Response data:", data);
+            
+            // Hide typing indicator
+            hideTyping();
+            
+            if (data.success) {
+                // Add assistant response
+                addMessage('assistant', data.response);
+                
+                // Update counter
+                updateCounter(data.questions_remaining);
+                
+                // Check if limit reached
+                if (data.limit_reached) {
+                    userInput.disabled = true;
+                    submitButton.disabled = true;
+                    showError('You have reached the maximum number of questions for this artwork.');
+                } else {
+                    // Re-enable input
+                    userInput.disabled = false;
+                    submitButton.disabled = false;
+                    userInput.focus();
+                }
+            } else {
+                // Handle error
+                console.error("API error:", data);
+                showError(data.message || 'An error occurred. Please try again.');
+                userInput.disabled = false;
+                submitButton.disabled = false;
+                userInput.focus();
             }
-        })();
-    </script>
+            
+        } catch (error) {
+            console.error('Fetch error:', error);
+            hideTyping();
+            showError('Failed to send message. Please check your connection and try again.');
+            userInput.disabled = false;
+            submitButton.disabled = false;
+            userInput.focus();
+        }
+    });
+    
+    console.log("Event listener attached!");
+    
+    // Auto-focus input on load
+    if (!userInput.disabled) {
+        userInput.focus();
+    }
+</script>
 </body>
 </html>

@@ -4,7 +4,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
-import os
+import os, time
 from dotenv import load_dotenv
 from openai import OpenAI
 import yaml
@@ -292,27 +292,25 @@ def is_limit_reached(messages: list[dict]) -> bool:
 
 
 def generate_reply(messages: list[dict]) -> str:
-    """Generate reply using OpenAI API."""
-    response = client.chat.completions.create(
+    response = client.responses.create(
         model="gpt-4o-mini",
-        messages=messages,
-        max_tokens=500,
-        temperature=0.8
+        input=messages,   # chat-style list of dicts: [{"role": "...", "content": "..."}]
+        store=False
     )
-    return response.choices[0].message.content
+    return response.output_text
 
 
-def build_messages_for_llm(artwork: dict, history: list[dict], user_text: str) -> list[dict]:
-    """Build message list for LLM with system prompt and history."""
-    system_prompt = artwork.get("system_prompt", "")
-    
-    # Add style examples if available
-    style_block = ""
-    if STYLE_EXAMPLES:
-        anti_copy = "\n".join(f"- {r}" for r in cfg.get("style_examples", {}).get("anti_copy_rules", []))
-        examples = "\n\n".join([f"EXAMPLE {i+1}:\n{ex}" for i, ex in enumerate(STYLE_EXAMPLES)])
-        style_block = f"""
+def build_messages(cfg: dict, style_examples: list[str], history: list[dict], rijks_meta: dict | None = None) -> list[dict]:
+    """
+    Build the message list for LLM API call.
+    Note: history should already include the latest user message.
+    """
+    system_prompt = cfg["persona"]["system_prompt"]
 
+    anti_copy = "\n".join(f"- {r}" for r in cfg["style_examples"]["anti_copy_rules"])
+    examples = "\n\n".join([f"EXAMPLE {i+1}:\n{ex}" for i, ex in enumerate(style_examples)])
+
+    style_block = f"""
 Use the following excerpts ONLY to imitate writing style (tone, rhythm, word choice).
 Do not copy text directly.
 
@@ -321,14 +319,31 @@ ANTI-COPY RULES:
 
 STYLE EXAMPLES:
 {examples}
-"""
-    
-    full_system = system_prompt + style_block
-    
+""".strip()
+
+    rijks_block = ""
+    if rijks_meta:
+        p = rijks_meta.get("parsed") or {}
+        rijks_block = f"""
+RIJKSMUSEUM METADATA (ground truth - use as authoritative source):
+If a user asks about techniques/materials and the answer is not present here, say you are not sure.
+- objectNumber: {rijks_meta.get("objectNumber")}
+- title: {p.get("title")}
+- artist: {p.get("artist")}
+- date: {p.get("date")}
+- classified_as: {", ".join((p.get("classified_as") or [])[:20])}
+- materials: {", ".join((p.get("materials") or [])[:20])}
+- dimensions: {", ".join((p.get("dimensions") or [])[:20])}
+- descriptions: {" | ".join((p.get("descriptions") or [])[:5])}
+
+""".strip()
+
+    dev_blocks = "\n\n---\n\n".join([b for b in [rijks_block, style_block] if b])
+
     return [
-        {"role": "system", "content": full_system},
+        {"role": "system", "content": system_prompt},
+        {"role": "developer", "content": dev_blocks},
         *history,
-        {"role": "user", "content": user_text},
     ]
 
 
@@ -367,56 +382,83 @@ async def chat_get(request: Request, artwork_id: str):
     )
 
 
-@app.post("/chat/{artwork_id}", response_class=HTMLResponse)
-async def chat_post(
-    request: Request,
-    artwork_id: str,
-    user_input: str | None = Form(None),
-    preset: str | None = Form(None),
-    action: str | None = Form(None),
-):
-    """Handle chat submissions for specific artwork."""
-    artwork = get_artwork(artwork_id)
-    
-    # Handle reset/go back
-    if action == "reset":
-        reset_messages(request, artwork_id)
-        return RedirectResponse(url=f"/chat/{artwork_id}", status_code=303)
-    
-    if action == "go_back":
-        reset_messages(request, artwork_id)
-        return RedirectResponse(url="/", status_code=303)
-    
+@app.post("/chat/{artwork_id}")
+async def chat_api(request: Request, artwork_id: str, user_message: str = Form(...)):
+    """
+    AJAX endpoint for chat - returns JSON instead of HTML redirect
+    """
     messages = get_messages(request, artwork_id)
     session_key = get_session_key(artwork_id)
-    
-    # Check if limit already reached
-    if is_limit_reached(messages):
-        return RedirectResponse(url=f"/chat/{artwork_id}", status_code=303)
-    
-    # Get the user's message (either from preset or free input)
-    user_message = None
-    if preset and preset.strip():
-        user_message = preset.strip()
-    elif user_input and user_input.strip():
-        user_message = user_input.strip()
-    
-    if user_message:
-        # Add user message to history
+    if user_message and user_message.strip():
         messages.append({"role": "user", "content": user_message})
+    try:
+        # Check if limit reached
+        if is_limit_reached(messages):
+            return JSONResponse(
+                status_code=429,
+                content={
+                    "success": False,
+                    "error": "limit_reached",
+                    "message": f"You've reached the maximum of {MAX_QUESTIONS} questions."
+                }
+            )
+        # Get artwork metadata
+        meta = RIJKS_CACHE.get() or RIJKS_META
+        full_messages = build_messages(cfg, STYLE_EXAMPLES, messages, rijks_meta = meta)
+        #artwork_config = RIJKS_META.get(artwork_id, {})
         
-        try:
-            # Build messages for LLM and generate reply
-            messages_for_llm = build_messages_for_llm(artwork, messages, user_message)
-            assistant_text = generate_reply(messages_for_llm)
-        except Exception as e:
-            assistant_text = f"I apologize, but I'm having trouble responding at the moment. Please try again. (Error: {type(e).__name__})"
+        #if artwork_config and artwork_config.get("object_number"):
+        #    object_number = artwork_config["object_number"]
+            
+            # Fetch from Rijksmuseum API
+            #try:
+                #metadata = await fetch_artwork_metadata(object_number)
+                #rijks_meta = metadata#.get("parsed", {})
+                #print(f"\n=== Fetched metadata for {artwork_id} ===")
+                #print(f"Title: {rijks_meta.get('title')}")
+                #print(f"Artist: {rijks_meta.get('artist')}")
+                #print(f"Date: {rijks_meta.get('date')}")
+                #print(f"Descriptions: {len(rijks_meta.get('descriptions', []))} found")
+                #print("=" * 50)
+            #except Exception as e:
+            #    print(f"Error fetching metadata: {e}")
+            #    rijks_meta = {}
         
-        # Add assistant response to history
-        messages.append({"role": "assistant", "content": assistant_text})
+        # Add user message
+        
+        
+        # Build full prompt with metadata
+        
+        
+        # Generate response
+        assistant_response = generate_reply(full_messages)
+        
+        # Add to history
+        messages.append({"role": "assistant", "content": assistant_response})
         request.session[session_key] = messages
-    
-    return RedirectResponse(url=f"/chat/{artwork_id}", status_code=303)
+        
+        return JSONResponse(
+            status_code=200,
+            content={
+                "success": True,
+                "response": assistant_response,
+                "questions_remaining": get_questions_remaining(messages),
+                "limit_reached": is_limit_reached(messages)
+            }
+        )
+        
+    except Exception as e:
+        print(f"Error in chat_api: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return JSONResponse(
+            status_code=500,
+            content={
+                "success": False,
+                "error": "server_error",
+                "message": "Something went wrong. Please try again."
+            }
+        )
 
 
 # ============== DEBUG ENDPOINT ==============
@@ -428,3 +470,8 @@ def debug_artworks():
         "available_artworks": list(ARTWORKS.keys()),
         "style_examples_loaded": len(STYLE_EXAMPLES)
     }
+
+@app.get("/debug/rijks_parsed")
+def debug_rijks_parsed():
+    meta = RIJKS_CACHE.get() or RIJKS_META
+    return (meta or {}).get("parsed") or {}

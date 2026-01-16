@@ -33,7 +33,15 @@ rijksmuseum:
 
   # cache behaviour
   cache_ttl_seconds: 86400
-  RIJKS_SENTINEL: 4f2c9e7a
+  
+artworks:
+  enabled: true
+  selfportrait:
+    objectNumber: "SK-A-3262"
+  milkmaid:
+    objectNumber: "SK-A-2344"
+  nightwatch:
+    objectNumber: "SK-C-5"
   
 
 
