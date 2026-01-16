@@ -34,24 +34,17 @@ def search_portraits(title=None, creator=None, type='painting'):
 
 def parse_artwork_details(data: dict) -> dict:
     """
-    Extracts structured fields from Rijksmuseum Linked Art objects (About page of the artwork).
-    Targets the dutch version since it provides richer information compared to English.
-
-    :param data: The Linked.Art object
-    :return: A dictionary containing the extracted fields
+    Extracts useful structured fields from Rijksmuseum Linked.Art objects
     """
     
-    # Codes for English and Dutch languages
-    en_code = "http://vocab.getty.edu/aat/300388277"
-    nl_code = "http://vocab.getty.edu/aat/300388256"  # Dutch language has more information
+    en_code = "http://vocab.getty.edu/aat/300388277" # prefer English so there is no need to find a way for translation
+    nl_code = "http://vocab.getty.edu/aat/300388256" # dutch language has more information
 
-    # Mapping of unit codes to unit names
     unit_map = {
         "http://vocab.getty.edu/aat/300379098": "cm",
         "http://vocab.getty.edu/aat/300379226": "kg",
     }
     
-    # Mapping of attribute codes to attribute names
     attr_map = {
         "https://id.rijksmuseum.nl/22011": "hoogte",
         "https://id.rijksmuseum.nl/22012": "breedte",
@@ -67,7 +60,7 @@ def parse_artwork_details(data: dict) -> dict:
             for sub in part.get("part", []):
                 if sub.get("type") == "Name":
                     langs = sub.get("language", [])
-                    if any(l.get("id") == nl_code for l in langs):
+                    if any(l.get("id") == en_code for l in langs):
                         title = sub.get("content")
                         break
             if title:
@@ -90,15 +83,20 @@ def parse_artwork_details(data: dict) -> dict:
 
     # ------------ ARTIST / MAKER ------------
     artist_name = None
+    artist_id = None
     
     prod = data.get("produced_by")
     if isinstance(prod, dict):
         for part in prod.get("part", []):
+            # get the person URI
+            for agent in part.get("carried_out_by", []):
+                artist_id = agent.get("id")
+    
             # read Dutch referred_to_by labels
             for ref in part.get("referred_to_by", []):
                 if ref.get("type") == "LinguisticObject":
                     langs = ref.get("language", [])
-                    if any(l.get("id") == nl_code for l in langs):
+                    if any(l.get("id") == en_code for l in langs):
                         artist_name = ref.get("content")
                         break
     
@@ -132,9 +130,9 @@ def parse_artwork_details(data: dict) -> dict:
 
     for entry in data.get("subject_of", []):
         langs = entry.get("language", [])
-        if not any(l.get("id") == nl_code for l in langs):
+        if not any(l.get("id") == en_code for l in langs):
             continue
-        
+    
         # level 1: direct content
         if "content" in entry:
             descriptions_nl.append(entry["content"])
@@ -167,12 +165,12 @@ def parse_artwork_details(data: dict) -> dict:
             # 2. Extract location name in english
             if item.get("type") == "Name":
                 langs = item.get("language", [])
-                if any(l.get("id") == nl_code for l in langs):
+                if any(l.get("id") == en_code for l in langs):
                     parts = item.get("part", [])
                     names = [p.get("content") for p in parts if p.get("content")]
                     location = " ".join(names)
                     
-    # ------------ DIMENSION ------------
+    # ------------ DIMENSION ------------        
     entries = []
     
     for item in data.get("dimension", []):
@@ -194,7 +192,7 @@ def parse_artwork_details(data: dict) -> dict:
         annotation = None
         for ref in item.get("referred_to_by", []):
             langs = ref.get("language", [])
-            if any(l.get("id") == nl_code for l in langs):
+            if any(l.get("id") == en_code for l in langs):
                 annotation = ref.get("content")
     
         if attr and value and unit:
@@ -202,7 +200,8 @@ def parse_artwork_details(data: dict) -> dict:
             
     dimension_str = " x ".join(entries)
 
-    # ------------ MATERIAL ------------
+    # ------------ MATERIAL ------------        
+
     material_code = "http://vocab.getty.edu/aat/300435429"
     
     materials = []
@@ -212,7 +211,7 @@ def parse_artwork_details(data: dict) -> dict:
             continue
         
         langs = item.get("language", [])
-        if not any(l.get("id") == nl_code for l in langs):
+        if not any(l.get("id") == en_code for l in langs):
             continue
     
         classes = item.get("classified_as", [])
@@ -225,6 +224,7 @@ def parse_artwork_details(data: dict) -> dict:
     
     materials = list(dict.fromkeys(materials))
 
+    
     return {
         "title": title,
         "artist": artist_name,
@@ -380,7 +380,6 @@ def aggregate_data(df, wiki_artwork_content, wiki_artist_bio, rel_artworks):
     final_data['artist_artworks'] = rel_artworks
     return final_data
 
-
 def data_extraction(search_set):
     """
     Extract data for the artworks using the Rijksmuseum API and the Wikipedia API.
@@ -390,32 +389,30 @@ def data_extraction(search_set):
     artworks_data = {}
     for creator, titles in search_set.items():
         for title in titles:
-            logger.info(f'Scraping info for artwork "{title}" of {creator}')
+            print(f'Scraping info for artwork "{title}" of {creator}')
             
             data = search_portraits(title=title, creator=creator)
             rijks_artwork_id = data["orderedItems"][0]['id']
             actual_id = re.search(r'/(\d+)(?:\?|$)', rijks_artwork_id).group(1)
-            
+    
             extracted_info = requests.get(rijks_artwork_id, headers={"Accept": "application/ld+json"}).json()
             
             extracted_data = parse_artwork_details(extracted_info)
-            extracted_data['artist'] = extracted_data['artist'].replace("schilder: ", "").strip() # cleaning
+            extracted_data['artist'] = extracted_data['artist'].replace("painter: ", "").strip() # cleaning
 
             # find all the other artworks from the artist
             rel_artworks = []
             data_artist = search_portraits(creator=creator)
-            if len(data_artist['orderedItems']) > 1:
+            if len(data_artist['orderedItems']) > 0:
                 for items in data_artist['orderedItems']:
                     if rijks_artwork_id != items['id']:
                         rel_art_id = items['id']
                         rel_art_extracted_info = requests.get(rel_art_id, headers={"Accept": "application/ld+json"}).json()
                         rel_art_extracted_data = parse_artwork_details(rel_art_extracted_info)
-                        rel_art_extracted_data['artist'] = rel_art_extracted_data['artist'].replace("schilder: ", "").strip() # cleaning
+                        rel_art_extracted_data['artist'] = rel_art_extracted_data['artist'].replace("painter: ", "").strip() # cleaning
                         rel_art_extracted_data = {k: rel_art_extracted_data[k] for k in ['title', 'room', 'location', 'artist']}
-
-                        rel_artworks.append(rel_art_extracted_data)
-    
-            
+                        if rel_art_extracted_data['title'] is not None:
+                            rel_artworks.append(rel_art_extracted_data)
             if (title != 'Self-Portrait') and (creator != 'Van Gogh'): # edge case cause self portrait has multiple paintings not a specific one
                 results = wikidata_search(title)
                 qid = select_painting(results)
