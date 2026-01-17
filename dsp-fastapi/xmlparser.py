@@ -35,11 +35,31 @@ if __name__ == "__main__":
     INPUT_DIR = Path("data_vangogh/")
     OUTPUT_DIR = Path("output_txt/")
     OUTPUT_DIR.mkdir(exist_ok=True)
+    print("== Welcome to Jason's very own Van Gogh's letter parser! == \n")
+    choice = input("Do you want the original letters (1) or the translation (2)? \n")
+    if choice == "1":
+        div_type = "original"
+        for xml_file in INPUT_DIR.glob("*.xml"):
+            try:
+                text = extract_tei_div_text(xml_file, div_type, drop_notes=True)
+                (OUTPUT_DIR / (xml_file.stem + ".txt")).write_text(text, encoding="utf-8")
+                print("OK:", xml_file.name)
+            except Exception as e:
+                print("FAIL:", xml_file.name, "-", e)
+    elif choice == "2":
+        OUTPUT_DIR = Path("output_eng/")
+        div_type = "translation"
+        for xml_file in INPUT_DIR.glob("*.xml"):
+            try:
+                text = extract_tei_div_text(xml_file, div_type, drop_notes=True)
+                (OUTPUT_DIR / (xml_file.stem + ".txt")).write_text(text, encoding="utf-8")
+                print("OK:", xml_file.name)
+            except Exception as e:
+                print("FAIL:", xml_file.name, "-", e)
+    else:
+        print("Invalid choice.")
+        exit()
 
-    for xml_file in INPUT_DIR.glob("*.xml"):
-        try:
-            text = extract_tei_div_text(xml_file, div_type="original", drop_notes=True)
-            (OUTPUT_DIR / (xml_file.stem + ".txt")).write_text(text, encoding="utf-8")
-            print("OK:", xml_file.name)
-        except Exception as e:
-            print("FAIL:", xml_file.name, "-", e)
+
+
+
