@@ -7,3 +7,8 @@ save_path = "Data/extracted_data.json"
 input_letters_van_gogh = "Data/data_vangogh/"
 output_letters_van_gogh_path_eng =  "Data/letters_van_gogh_en/"
 output_letters_van_gogh_path_nl = "Data/letters_van_gogh_nl/"
+
+
+# ------------------------------------------ CHROMA_DB -----------------------------------------------------------------------------
+chroma_db_path = './db_rijksmuseum'
+collection_name = 'rijksmuseum_data'
