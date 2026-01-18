@@ -205,5 +205,8 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
-dsp-fastapi/data_vangogh
-dsp-fastapi/output_txt
+Data/data_vangogh
+Data/letters_van_gogh_en
+Data/letters_van_gogh_nl
+db_rijksmuseum
+other_rijksmuseum_parser
