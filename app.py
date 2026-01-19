@@ -12,6 +12,8 @@ from pathlib import Path
 import chromadb, json
 from style_loader import load_letter_texts, build_style_examples
 from museum_api import fetch_artwork_metadata, RijksCache
+from build_chroma_db import embed
+from question_answering import *
 
 # Load environment variables from .env file
 load_dotenv()
@@ -23,236 +25,48 @@ cfg = yaml.safe_load(Path("configs/config.yml").read_text(encoding="utf-8"))
 RIJKS_CACHE = RijksCache()
 RIJKS_META = None
 
+with open("Data/extracted_data.json", "r", encoding="utf-8") as f:
+    EXTRACTED_DATA = json.load(f)
 STYLE_TEXTS = []
 STYLE_EXAMPLES = []
-ARTWORKS = {
-    "milkmaid": {
-        "id": "milkmaid",
-        "title": "The Milkmaid",
-        "artist": "Johannes Vermeer",
-        "year": "c. 1658-1660",
-        "image": "/static/figs/themilkmaid.png",
-        "initial_message": (
-            "Good day, dear visitor. I am Johannes Vermeer, painter of Delft. "
-            "I see you are admiring my painting 'The Milkmaid' - one of my most cherished works. "
-            "I spent many hours capturing the gentle light falling through the window, "
-            "illuminating this simple yet dignified scene. What would you like to know about it?"
-        ),
-        "presets": [
-            "What inspired you to paint this scene?",
-            "How did you achieve such realistic light?",
-            "What is the symbolism in this painting?",
-            "Tell me about your painting technique",
-            "Who was the woman in this painting?",
-            "How long did it take to complete?"
-        ],
-        "system_prompt": (
-            "You are Johannes Vermeer, the famous Dutch Golden Age painter (1632-1675). "
-            "You are speaking with a museum visitor about your painting 'The Milkmaid'. "
-            "Speak in first person as Vermeer himself would - thoughtful, observant, and passionate about light and composition. "
-            "Share insights about your techniques, the symbolism in your work, life in 17th century Delft, "
-            "and your artistic philosophy. Be warm and engaging, but maintain historical accuracy. "
-            "You may discuss your use of the camera obscura, your interest in domestic scenes, "
-            "and your meticulous attention to light and texture."
-        )
-    },
-    "selfportrait": {
-        "id": "selfportrait",
-        "title": "Self-Portrait",
-        "artist": "Vincent van Gogh",
-        "year": "1887",
-        "image": "/static/figs/vangogh.jpg",
-        "initial_message": (
-            "Ah, a visitor! I am Vincent van Gogh. You stand before one of my many self-portraits - "
-            "I painted over 30 of them, you know. Each one was an exploration, a way to practice "
-            "without paying for models, and perhaps... a way to understand myself. "
-            "The brushstrokes you see, the colors - they speak of my inner state. "
-            "What would you like to discuss?"
-        ),
-        "presets": [
-            "Why did you paint so many self-portraits?",
-            "Tell me about your brushwork style",
-            "What was your life like as an artist?",
-            "How do you choose your colors?",
-            "What was your relationship with your brother Theo?",
-            "How did you develop your unique style?"
-        ],
-        "system_prompt": (
-            "You are Vincent van Gogh, the Post-Impressionist painter (1853-1890). "
-            "You are speaking with a museum visitor about your self-portrait. "
-            "Speak passionately and emotionally, as Vincent would - intense, sincere, and deeply thoughtful. "
-            "Share your struggles with mental health, your devotion to art, your relationship with Theo, "
-            "and your artistic vision. Discuss your bold use of color, expressive brushwork, "
-            "and your desire to capture emotion through paint. Be honest about your difficulties "
-            "but also your hope and dedication to your craft."
-        )
-    },
-    "nightwatch": {
-        "id": "nightwatch",
-        "title": "The Night Watch",
-        "artist": "Rembrandt van Rijn",
-        "year": "1642",
-        "image": "/static/figs/nightwatch.jpg",
-        "initial_message": (
-            "Welcome! I am Rembrandt van Rijn, and you behold my grandest commission - "
-            "though they call it 'The Night Watch' now, it was actually painted as a day scene! "
-            "The varnish has darkened over centuries. This painting shows Captain Frans Banning Cocq "
-            "and his militia company. I broke all conventions with this work. "
-            "What intrigues you about it?"
-        ),
-        "presets": [
-            "Why is it called The Night Watch?",
-            "Who are all the people in this painting?",
-            "What was revolutionary about this painting?",
-            "Tell me about your use of light and shadow",
-            "How were you paid for this commission?",
-            "What is the story being depicted?"
-        ],
-        "system_prompt": (
-            "You are Rembrandt van Rijn, the Dutch Golden Age master (1606-1669). "
-            "You are speaking with a museum visitor about 'The Night Watch'. "
-            "Speak with confidence and artistic authority - you are one of the greatest painters in history. "
-            "Discuss your revolutionary approach to group portraits, your mastery of chiaroscuro, "
-            "the drama and movement you brought to this militia painting, and the controversy it caused. "
-            "Share insights about 17th century Amsterdam, the militia companies, and your artistic techniques."
-        )
-    },
-    "jewishbride": {
-        "id": "jewishbride",
-        "title": "The Jewish Bride",
-        "artist": "Rembrandt van Rijn",
-        "year": "c. 1665-1669",
-        "image": "/static/figs/jewishbride.jpeg",
-        "initial_message": (
-            "Ah, you've found one of my most intimate works. I am Rembrandt. "
-            "This painting - they call it 'The Jewish Bride' though its true subject remains a mystery - "
-            "captures something I hold dear: the tender bond between two souls. "
-            "Notice how the man's hand rests so gently on her chest. "
-            "The paint itself becomes emotion here. What moves you about this work?"
-        ),
-        "presets": [
-            "Who are the people in this painting?",
-            "Why is the paint applied so thickly?",
-            "What emotions were you trying to capture?",
-            "Tell me about the colors you used",
-            "When in your life did you paint this?",
-            "Why is this considered a masterpiece?"
-        ],
-        "system_prompt": (
-            "You are Rembrandt van Rijn in your later years (1606-1669). "
-            "You are speaking about 'The Jewish Bride', painted near the end of your life. "
-            "Speak with wisdom, depth, and emotional maturity - you have experienced loss, bankruptcy, "
-            "but also profound artistic growth. Discuss your impasto technique, how you applied paint "
-            "almost like sculpture, the intimacy and tenderness in this work, and how your style evolved. "
-            "Reflect on love, human connection, and the power of art to capture the soul."
-        )
-    },
-    "womanreading": {
-        "id": "womanreading",
-        "title": "Woman Reading a Letter",
-        "artist": "Johannes Vermeer",
-        "year": "c. 1663",
-        "image": "/static/figs/womanreadingletter.jpeg",
-        "initial_message": (
-            "Good day. I am Johannes Vermeer. You observe a woman lost in a letter - "
-            "perhaps from a distant lover, perhaps bearing news we cannot know. "
-            "I painted her in this moment of private absorption, the light from the window "
-            "revealing and concealing in equal measure. The blue of her jacket took months to perfect. "
-            "What draws you to this scene?"
-        ),
-        "presets": [
-            "What is the woman reading?",
-            "How did you create that beautiful blue?",
-            "What is the mood you wanted to capture?",
-            "Tell me about the light in this painting",
-            "Why did you paint so many women reading?",
-            "What was life like for women in your time?"
-        ],
-        "system_prompt": (
-            "You are Johannes Vermeer, speaking about 'Woman Reading a Letter'. "
-            "Discuss your fascination with quiet, contemplative moments, the mystery of private correspondence, "
-            "and your meticulous technique. Share your process of capturing light, your use of expensive pigments "
-            "like ultramarine blue, and the domestic world of 17th century Delft. "
-            "Speak thoughtfully about the narrative possibilities in a single frozen moment."
-        )
-    },
-    "loveletter": {
-        "id": "loveletter",
-        "title": "The Love Letter",
-        "artist": "Johannes Vermeer",
-        "year": "c. 1669-1670",
-        "image": "/static/figs/loveletter.png",
-        "initial_message": (
-            "Welcome, friend. I am Johannes Vermeer. This painting invites you to witness "
-            "a private moment - a mistress has just received a letter, and her maid watches knowingly. "
-            "Notice how I've framed the scene through a doorway, as if you've stumbled upon something secret. "
-            "The lute she holds, the paintings on the wall - all tell a story of love. "
-            "What questions do you have?"
-        ),
-        "presets": [
-            "What is happening in this scene?",
-            "Why did you frame it through a doorway?",
-            "What do the symbols in the painting mean?",
-            "Tell me about the relationship depicted",
-            "How did you compose this scene?",
-            "What makes this painting special to you?"
-        ],
-        "system_prompt": (
-            "You are Johannes Vermeer discussing 'The Love Letter'. "
-            "Explain your innovative composition with the doorway frame, the rich symbolism "
-            "(the lute, seascape paintings, the shoes), and the narrative of love and correspondence. "
-            "Discuss how you create intimacy while maintaining distance, your technique of painting "
-            "within a painting, and the social dynamics between mistress and maid in Dutch society."
-        )
-    }
-}
+
+def build_artworks_from_json(extracted_data):
+    """Transform extracted_data.json into ARTWORKS format for the app."""
+    #
+    artworks = {}
+    for artwork_id, data in extracted_data.items():
+        # Get the artist name - handle both simple string and nested structure
+        artist = data.get("artist", "Unknown Artist")
+        
+        artworks[artwork_id] = {
+            "id": artwork_id,
+            "title": data.get("title", "Unknown"),
+            "artist": artist,
+            "year": data.get("year", ""),
+            "image": f"/static/figs/{artwork_id}.png",  # Adjust path as needed
+            "description": data.get("description", ""),
+            "location": data.get("location", ""),
+            "room": data.get("room", ""),
+            "dimension": data.get("dimension", ""),
+            "material": data.get("material", []),
+            "source": data.get("source", ""),
+            "initial_message": f"Welcome! I am {artist}. You are viewing my work '{data.get('title', 'this artwork')}'. What would you like to know?",
+            "presets": [
+                "What inspired this work?",
+                "Tell me about your technique",
+                "What was your artistic vision?",
+                "What does this artwork mean?",
+                "How long did this take to create?",
+                "What is the story behind this?"
+            ],
+            "system_prompt": f"You are {artist}, speaking about your artwork '{data.get('title', 'this piece')}' from {data.get('year', 'this period')}. Speak as the artist would, sharing insights about techniques, symbolism, and artistic vision. Be warm, engaging, and historically accurate."
+        }
+    return artworks
+
+ARTWORKS = build_artworks_from_json(EXTRACTED_DATA)
 
 # ensure that we retrieve documents only for the specific artwork, or the artist, or descriptive info of his relevant artworks
-def retrieve(query, creator, painting_id, k=8):
-    query_emb = embed(query)
- 
-    return collection.query(
-        query_embeddings=[query_emb],
-        n_results=k,
-        where={
-            "$or": [
-                {"painting_id": painting_id},
-                {
-                    "$and": [
-                        {"type": "artist_other_artwork"},
-                        {"source_painting_id": painting_id}
-                    ]
-                },
-                {
-                    "$and": [
-                        {"type": "wiki_artist_bio"},
-                        {"artist": creator}
-                    ]
-                }
-            ]
-        }
-    )
 
-def answer(query, title, creator, painting_id):
-    results = retrieve(query, creator, painting_id, k=10)
-    context = "\n\n".join(results["documents"][0])
- 
-    prompt = f"""
-    You are an expert Rijksmuseum art assistant. Suppose that when the user asks you a question, he is already in the Rijksmuseum. You can answer questions ONLY about the artwork: {title} and the creator {creator}.
-    User question:
-    {query}
-    Context:
-    {context}
-    Answer using ONLY the context above. If not answerable, say "I don't know from available information."
-    If it is irrelevant to the artwork and the creator, you will politely respond that your purpose is to provide information only about the painting and the artist.
- 
-    """
- 
-    completion = client.chat.completions.create(
-        model="gpt-4.1",
-        messages=[{"role": "user", "content": prompt}]
-    )
-    return completion.choices[0].message.content
 
 if cfg.get("style_examples", {}).get("enabled", False):
     STYLE_TEXTS = load_letter_texts(cfg)
@@ -288,15 +102,27 @@ app.add_middleware(SessionMiddleware, secret_key=os.environ["SESSION_SECRET"])
 templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+sources = {
+"Vincent van Gogh": [van_gogh_letters_path],
+"Johannes Vermeer": [vermeer_texts_path],
+}
 
+persona_chunks = load_persona_chunks(sources)
 # ============== ARTWORK CONFIGURATION ==============
 # Each artwork has its own id, metadata, initial message, and suggested questions
 
 MAX_QUESTIONS = 5  # Maximum questions per conversation
 
-def get_artwork(artwork_id: str) -> dict:
-    """Get artwork configuration by ID, with fallback to milkmaid."""
-    return ARTWORKS.get(artwork_id, ARTWORKS["milkmaid"])
+def reset_messages(request: Request, artwork_id: str):
+    """Reset messages for specific artwork."""
+    session_key = get_session_key(artwork_id)
+    if session_key in request.session:
+        del request.session[session_key]
+
+
+def get_artwork(artwork_id: str, default=None):
+    """Get artwork data by ID."""
+    return ARTWORKS.get(artwork_id, default)
 
 
 def get_session_key(artwork_id: str) -> str:
@@ -305,23 +131,20 @@ def get_session_key(artwork_id: str) -> str:
 
 
 def get_messages(request: Request, artwork_id: str) -> list[dict]:
-    """Get session chat history for specific artwork; initialize if missing."""
+    """Retrieve messages for specific artwork from session."""
     session_key = get_session_key(artwork_id)
-    if session_key not in request.session:
-        artwork = get_artwork(artwork_id)
-        request.session[session_key] = [
-            {"role": "assistant", "content": artwork["initial_message"]}
-        ]
-    return request.session[session_key]
-
-
-def reset_messages(request: Request, artwork_id: str) -> None:
-    """Reset chat history for specific artwork."""
-    session_key = get_session_key(artwork_id)
-    artwork = get_artwork(artwork_id)
-    request.session[session_key] = [
-        {"role": "assistant", "content": artwork["initial_message"]}
-    ]
+    messages = request.session.get(session_key, [])
+    
+    if not messages:
+        artwork = ARTWORKS.get(artwork_id)
+        if artwork:
+            messages = [{
+                "role": "assistant",
+                "content": artwork["initial_message"]
+            }]
+            request.session[session_key] = messages
+    
+    return messages
 
 
 def count_user_questions(messages: list[dict]) -> int:
@@ -396,13 +219,24 @@ If a user asks about techniques/materials and the answer is not present here, sa
         *history,
     ]
 
+def get_preset_responses() -> list[str]:
+    """Return preset prompts for quickstart."""
+    return [
+        "What inspired you to create this?",
+        "Tell me about your painting technique",
+        "What symbolism is hidden in this work?",
+        "How long did this take to paint?",
+        "What was your life like during this time?",
+        "How did you choose the colors?"
+    ]
 
 # ============== ROUTES ==============
 
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     """Home page with artwork gallery."""
-    return templates.TemplateResponse("index_2.html", {"request": request})
+    return templates.TemplateResponse("index_2.html", {"request": request, "artworks": ARTWORKS})
+
 
 
 @app.get("/chat/{artwork_id}/reset")
@@ -415,7 +249,11 @@ async def chat_reset(request: Request, artwork_id: str):
 @app.get("/chat/{artwork_id}", response_class=HTMLResponse)
 async def chat_get(request: Request, artwork_id: str):
     """Display chat page for specific artwork."""
-    artwork = get_artwork(artwork_id)
+    print(f"Requested artwork_id: {artwork_id}")
+    artwork = get_artwork(artwork_id, {})
+    print(f"Loading chat for artwork: {artwork_id}")
+    print(f"Artwork data: {artwork}")
+    
     messages = get_messages(request, artwork_id)
     questions_remaining = get_questions_remaining(messages)
     limit_reached = is_limit_reached(messages)
@@ -437,12 +275,26 @@ async def chat_api(request: Request, artwork_id: str, user_message: str = Form(.
     """
     AJAX endpoint for chat - returns JSON instead of HTML redirect
     """
-    name = ARTWORKS.get(artwork_id, ARTWORKS[artwork_id])["artist"]
-    print(name)
+    artwork = get_artwork(artwork_id)
+    if not artwork:
+        return JSONResponse(
+            status_code=404,
+            content={
+                "success": False,
+                "error": "artwork_not_found",
+                "message": f"Artwork {artwork_id} not found."
+            }
+        )
+    
+    name = artwork["artist"]
+    #print(f"Chat API - Artwork: {artwork_id}, Artist: {name}")
+    
     messages = get_messages(request, artwork_id)
     session_key = get_session_key(artwork_id)
+    
     if user_message and user_message.strip():
         messages.append({"role": "user", "content": user_message})
+    
     try:
         # Check if limit reached
         if is_limit_reached(messages):
@@ -454,13 +306,29 @@ async def chat_api(request: Request, artwork_id: str, user_message: str = Form(.
                     "message": f"You've reached the maximum of {MAX_QUESTIONS} questions."
                 }
             )
-        # Get artwork metadata
-        meta = RIJKS_CACHE.get() or RIJKS_META
-        full_messages = build_messages(cfg, STYLE_EXAMPLES, messages, name=name, rijks_meta = meta)
-
+        
+        # Get artwork metadata from extracted_data
+        # Build metadata block from our JSON data
+        metadata_block = {
+            "objectNumber": artwork_id,
+            "parsed": {
+                "title": artwork.get("title"),
+                "artist": artwork.get("artist"),
+                "date": artwork.get("year"),
+                "materials": artwork.get("material", []),
+                "dimensions": [artwork.get("dimension", "")],
+                "descriptions": [artwork.get("description", "")],
+                "classified_as": []
+            }
+        }
+        
+        # Merge with RIJKS_CACHE data if available
+        cache_meta = RIJKS_CACHE.get()
+        rijks_meta = cache_meta if cache_meta else metadata_block
+        print(messages)
         # Build full prompt with metadata
-        
-        
+        #full_messages = build_messages(cfg, STYLE_EXAMPLES, messages, name=name, rijks_meta=rijks_meta)
+        full_messages = answer(user_message, artwork["title"], artwork["artist"], artwork_id, persona_chunks)
         # Generate response
         assistant_response = generate_reply(full_messages)
         
@@ -472,7 +340,7 @@ async def chat_api(request: Request, artwork_id: str, user_message: str = Form(.
             status_code=200,
             content={
                 "success": True,
-                "response": assistant_response,
+                "response": full_messages,
                 "questions_remaining": get_questions_remaining(messages),
                 "limit_reached": is_limit_reached(messages)
             }

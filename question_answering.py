@@ -46,7 +46,7 @@ def load_persona_chunks(sources: Dict[str, List[str]]) -> Dict[str, List[str]]:
         logger.info(f"Loaded {len(value)} chunks for {key}")
     return persona_chunks
 
-def sample_persona_chunks(persona: str, k: int = 5) -> str:
+def sample_persona_chunks(persona_chunks, persona: str, k: int = 5) -> str:
     """
     Sample k persona chunks for a given persona.
     Args:
@@ -93,8 +93,8 @@ def retrieve(query: str, creator: str, painting_id: str, k: int = 8) -> Dict[str
     )
 
 
-def answer(query, title, creator, painting_id):
-    persona_style_snippets = sample_persona_chunks(creator, 5)
+def answer(query, title, creator, painting_id, persona_chunks):
+    persona_style_snippets = sample_persona_chunks(persona_chunks,creator, 5)
     results = retrieve(query, creator, painting_id, k=10)
     
     context = "\n\n".join(results["documents"][0])
