@@ -1,6 +1,6 @@
 import requests
 import re
-from config import search_set, folder_path, save_path
+from config import search_set, folder_path, extracted_data_path
 import json
 from pathlib import Path
 from loguru import logger
@@ -446,9 +446,7 @@ def save_json(data, folder_path, save_path):
         # Save the data to the JSON file with indentation
         json.dump(data, f, ensure_ascii=False, indent=2)
 
-
-
 if __name__ == "__main__":
     all_data = data_extraction(search_set)
-    save_json(all_data, folder_path, save_path)
-    logger.info('Success, data saved into {}'.format(save_path))
+    save_json(all_data, folder_path, extracted_data_path)
+    logger.info('Success, data saved into {}'.format(extracted_data_path))

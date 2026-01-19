@@ -1,4 +1,4 @@
-from config import save_path, chroma_db_path, collection_name
+from config import extracted_data_path, chroma_db_path, collection_name
 import json
 import os
 from dotenv import load_dotenv
@@ -7,7 +7,7 @@ import chromadb
 import textwrap
 from loguru import logger
 
-all_data = json.load(open(save_path, encoding="utf-8"))
+all_data = json.load(open(extracted_data_path, encoding="utf-8"))
 load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
