@@ -1,0 +1,155 @@
+# -----------------------------------------  DATA EXTRACTION ---------------------------------------------------------------
+search_set = {'Johannes Vermeer': ['The Milkmaid', 'The Love Letter', 'The Little Street'], 'Van Gogh': ['Self-Portrait']}
+folder_path = "Data"
+extracted_data_path = "Data/extracted_data.json"
+
+# ------------------------------------------ XML VAN GOGH LETTERS -----------------------------------------------------------------------------
+input_letters_van_gogh = "Data/data_vangogh/"
+output_letters_van_gogh_path_eng =  "Data/letters_van_gogh_en/"
+output_letters_van_gogh_path_nl = "Data/letters_van_gogh_nl/"
+
+
+# ------------------------------------------ CHROMA_DB -----------------------------------------------------------------------------
+chroma_db_path = './db_rijksmuseum'
+collection_name = 'rijksmuseum_data'
+
+
+# ------------------------------------------------- QUESTION ANSWERING ------------------------------------------------------------------
+van_gogh_letters_path = "Data/letters_van_gogh_en"
+vermeer_texts_path = "Data/text_vermeer/"
+# -------------------------------------------------------- PREDEFINED QUESTIONS FOR EACH ARTWORK ------------------------------------------------
+
+pred_embeddings_path = "Data/predefined_questions_embeddings.json"
+
+
+predefined_questions = {
+    '200108369': [
+        "Why are you likely making bread pudding?",
+        "How do you dignify the maid figure?",
+        "What symbolic meanings surround the foot warmer?",
+        "How do diagonals direct viewer attention?",
+        "How is domestic virtue expressed here?",
+        "Why is ultramarine significant in this painting?",
+        "How do you create sculptural realism with light?",
+        "Why did you remove background objects?",
+        "What erotic symbols are subtly present?",
+        "How is ambiguity conveyed in the maid’s expression?",
+        "How do maid tropes influence interpretation?",
+        "What social anxieties surround maids here?",
+        "What identifies the room as a cold kitchen?",
+        "How does texture enhance illusionism?",
+        "What challenges the camera obscura theory?",
+        "How does Pepys contextualize maid desire?",
+        "Why is 'melkmeisje' preferred over 'keukenmeid'?",
+        "How does vantage point convey dignity?",
+        "Why include stale bread on the table?",
+        "How do critics describe its museum significance?",
+        "What marks this as a transitional work?",
+        "How does tactility affect viewer perception?",
+        "Which artists influenced maid iconography?",
+        "How do desire and virtue coexist here?",
+        "What was the painting's provenance journey?",
+        "How do glazes differentiate clothing textures?",
+        "How do color choices shape atmosphere?",
+        "What values are implied by careful cooking?",
+        "Why is the emotional state unreadable?",
+        "How does the subject reflect Dutch social changes?"
+    ],
+
+    '200108370': [
+        "Why is the viewpoint deliberately veiled?",
+        "What does the curtain imply about privacy?",
+        "How do you use the maid to mediate narrative?",
+        "What emotions does the mistress display?",
+        "How is class difference visually encoded?",
+        "Why is the cittern symbolically significant?",
+        "How does the seascape function metaphorically?",
+        "Why include a landscape above the seascape?",
+        "What do the slippers imply erotically?",
+        "How does the brush signal neglected domestic duty?",
+        "How do blue and gold structure the palette?",
+        "What indicates household wealth?",
+        "How do you create spatial depth?",
+        "Why is this your only seascape?",
+        "What cultural anxieties surround love letters?",
+        "Why might the lover be considered absent?",
+        "What role does anticipation play in the scene?",
+        "How do diagonals guide the gaze?",
+        "What is implied by the maid’s expression?",
+        "How does costume communicate social status?",
+        "What narrative is suggested by nautical allegory?",
+        "How was the painting stolen in 1971?",
+        "Why did the thief demand famine relief?",
+        "What damage occurred during the theft?",
+        "How long did restoration require afterward?",
+        "Where did the painting once reside in Poland?",
+        "What does provenance reveal about its prestige?",
+        "How do props encode gender expectations?",
+        "How do you balance virtue and desire?"
+    ],
+
+    '200108371': [
+        "Why depict ordinary Delft houses?",
+        "How is domestic labor implied?",
+        "What makes the composition unusually balanced?",
+        "How does texture convey material authenticity?",
+        "Why emphasize brickwork so palpably?",
+        "How do straight angles create visual dynamism?",
+        "What do the children suggest about daily life?",
+        "How is quietness communicated?",
+        "What distinguishes this from genre interiors?",
+        "How does weather affect mood?",
+        "Why was the location long debated?",
+        "How did research settle the location in 2015?",
+        "Why was Vlamingstraat identified?",
+        "How is the Penspoort referenced?",
+        "What role did your aunt play here?",
+        "How does family property shape subject choice?",
+        "Why paint a humble street scene?",
+        "What does this reveal about Delft urban fabric?",
+        "How does scale influence viewer intimacy?",
+        "What pigments shape the chromatic scheme?",
+        "Why use limited pigments here?",
+        "How do shutters and foliage operate visually?",
+        "What makes this rare within your oeuvre?",
+        "Why only three Delft views?",
+        "How does authenticity differ from idealized views?",
+        "What narrative do figures silently propose?",
+        "How does this align with civic pride?",
+        "How does the signed façade assert authorship?",
+        "What does provenance indicate about reception?",
+        "Why is the work foundational for Delft studies?"
+    ],
+
+    '200109794': [
+        "Why portray yourself as a fashionable Parisian?",
+        "How did Parisian avant-garde influence your palette?",
+        "Why adopt bright complementary colors?",
+        "How do rhythmic strokes create vibration?",
+        "What makes this self-portrait modern?",
+        "Why shift away from the dark Dutch palette?",
+        "How does French style replace realist conventions?",
+        "Why paint self-portraits to avoid model costs?",
+        "What does attire signal about aspiration?",
+        "How does your gaze construct artistic identity?",
+        "How are Impressionist theories visible here?",
+        "How does pointillist influence appear?",
+        "Why was 1887 pivotal for your color theory?",
+        "How does cardboard affect paint handling?",
+        "What does the urban setting add?",
+        "How did Theo enable this transition?",
+        "Why experiment instead of depicting likeness traditionally?",
+        "How does contour dissolve into background?",
+        "What makes the brushwork Parisian?",
+        "How did Signac and Bernard affect technique?",
+        "Why emphasize texture over anatomy?",
+        "How does chromatic harmony replace modeling?",
+        "Why so many self-portraits in this period?",
+        "What does scale suggest about purpose?",
+        "Why omit psychological turmoil?",
+        "How is confidence communicated through pose?",
+        "How does this challenge academic norms?",
+        "Why is this considered transitional?",
+        "How did exhibition trends shape choices?"
+    ]
+}
