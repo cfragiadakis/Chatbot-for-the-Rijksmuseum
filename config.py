@@ -33,29 +33,29 @@ PRESETS = {
     ],
 
    '200108370': [
-        "Why frame the scene as secretly observed?",
+        "Why did you frame the scene as secretly observed?",
         "How does the maid shape the letter’s meaning?",
-        "Why keep the letter’s contents ambiguous?",
-        "Why include music as a love symbol?",
-        "Why use a stormy sea as metaphor?",
-        "Why make viewers silent witnesses?"
+        "Why did you keep the letter’s contents ambiguous?",
+        "Why did you include music as a love symbol?",
+        "Why did you use a stormy sea as metaphor?",
+        "Why did you make viewers silent witnesses?"
     ],
 
     '200108371': [
-        "Why paint an ordinary street scene?",
-        "Why treat architecture like human subjects?",
-        "Why emphasize cracks, bricks, and wear?",
-        "Why present everyday life as meaningful?",
+        "Why did you paint an ordinary street scene?",
+        "Why did you treat architecture like human subjects?",
+        "Why did you emphasize cracks, bricks, and wear?",
+        "Why did you present everyday life as meaningful?",
         "Why does the scene feel timeless?",
         "What should viewers feel here?"
     ],
 
     '200109794': [
-        "Why focus on self-portraiture in Paris?",
-        "Why experiment so boldly with color?",
-        "Why depict yourself with such alert eyes?",
+        "Why did you focus on self-portraiture in Paris?",
+        "Why did you experiment so boldly with color?",
+        "Why did you depict yourself with such alert eyes?",
         "How did Paris reshape your artistic identity?",
-        "Why make the brushwork so visible?",
+        "Why did you make the brushwork so visible?",
         "What should viewers recognize in you?"
     ]
 }
