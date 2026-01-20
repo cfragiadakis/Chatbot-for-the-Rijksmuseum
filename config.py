@@ -22,6 +22,41 @@ vermeer_texts_path = "Data/text_vermeer/"
 pred_embeddings_path = "Data/predefined_questions_embeddings.json"
 
 
+PRESETS= {
+    "200108369": [
+        "What is happening in the scene?",
+        "What symbolic meanings surround the foot warmer?",
+        "How is domestic virtue expressed here?",
+        "Why is ultramarine significant in this painting?",
+        "How does texture enhance illusionism?",
+        "Which artists influenced maid iconography?"
+    ],
+    "200108370": [
+        "What emotions does the mistress display?",
+        "How is class difference visually encoded?",
+        "What narrative is suggested by nautical allegory?",
+        "Why is the cittern symbolically significant?",
+        "How do props encode gender expectations?",
+        "How does the seascape function metaphorically?"
+    ],
+    "200108371": [
+        "What do the children suggest about daily life?",
+        "Why depict ordinary Delft houses?",
+        "How is domestic labor implied?",
+        "How does texture convey material authenticity?",
+        "Why was the location long debated?",
+        "What makes the composition unusually balanced?"
+    ],
+    "200109794": [
+        "Why portray yourself as a fashionable Parisian?",
+        "How did Parisian avant-garde influence your palette?",
+        "Why adopt bright complementary colors?",
+        "How do rhythmic strokes create vibration?",
+        "What makes this self-portrait modern?",
+        "Why was 1887 pivotal for your color theory?"
+    ]
+}
+
 predefined_questions = {
     '200108369': [
         "Why are you likely making bread pudding?",
