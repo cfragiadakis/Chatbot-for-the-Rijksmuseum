@@ -123,7 +123,6 @@ Now write your answer in the first-person voice of {creator}. The response shoul
 
     history = messages_history or []
 
-    logger.info("Prompt given:", prompt)
     llm_messages = [{"role": "system", "content": prompt}]
 
     for msg in history:
