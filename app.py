@@ -249,7 +249,7 @@ async def chat_get(request: Request, artwork_id: str):
     
     messages = get_messages(request, artwork_id)
     questions_remaining = get_questions_remaining(messages)
-    limit_reached = is_limit_reached(messages)
+    # limit_reached = is_limit_reached(messages)
     
     return templates.TemplateResponse(
         "chat_2.html",
@@ -258,7 +258,7 @@ async def chat_get(request: Request, artwork_id: str):
             "artwork": artwork,
             "messages": messages,
             "questions_remaining": questions_remaining,
-            "limit_reached": limit_reached
+           # "limit_reached": limit_reached
         }
     )
 
@@ -346,7 +346,7 @@ async def chat_api(request: Request, artwork_id: str, user_message: str = Form(.
                 "success": True,
                 "response": assistant_response,
                 "questions_remaining": get_questions_remaining(messages),
-                "limit_reached": is_limit_reached(messages)
+               # "limit_reached": is_limit_reached(messages)
             }
         )
         
