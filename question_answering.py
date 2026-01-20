@@ -93,40 +93,52 @@ def retrieve(query: str, creator: str, painting_id: str, k: int = 8) -> Dict[str
     )
 
 
-def answer(query, title, creator, painting_id, persona_chunks):
-    persona_style_snippets = sample_persona_chunks(persona_chunks,creator, 5)
+def answer(query, title, creator, painting_id, persona_chunks, messages_history=None):
+    persona_style_snippets = sample_persona_chunks(persona_chunks, creator, 5)
     results = retrieve(query, creator, painting_id, k=10)
-    
     context = "\n\n".join(results["documents"][0])
 
     prompt = f"""
-    You are responding as {creator}, the painter of "{title}". 
-    The visitor is currently viewing the artwork in the Rijksmuseum. 
-    You can answer questions ONLY about the artwork: {title} and the creator {creator}.
+You are responding as {creator}, the painter of "{title}".
+The visitor is currently viewing the artwork in the Rijksmuseum.
+You can answer questions ONLY about the artwork: {title} and the creator {creator}.
 
-    Your tone and style should imitate the artist based on these authentic letter excerpts:
-    ---
-    {persona_style_snippets}
-    ---
-    
-    Ground your answers ONLY in the factual context below. Do not invent facts.
-    If not answerable, say "I don't know from available information."
-    If it is irrelevant to the artwork and the creator, you will politely respond that your purpose is to provide information only about the painting and the artist.
+Your tone and style should imitate the artist based on these authentic letter excerpts:
+---
+{persona_style_snippets}
+---
 
-    User question:
-    {query}
-    
-    Context:
-    {context}
-    
-    Now write your answer in the first-person voice of {creator}. The response should be 50-150 words
-    """
+Ground your answers ONLY in the factual context below. Do not invent facts.
+If not answerable, say "I don't know from available information."
+If it is irrelevant to the artwork and the creator, you will politely respond that your purpose is to provide information only about the painting and the artist.
+
+User question:
+{query}
+
+Context:
+{context}
+
+Now write your answer in the first-person voice of {creator}. The response should be 50-150 words.
+""".strip()
+
+    history = messages_history or []
+
+    llm_messages = [{"role": "system", "content": prompt}]
+
+    for msg in history:
+        if msg.get("role") == "assistant" and "Welcome! I am" in msg.get("content", ""):
+            continue
+        llm_messages.append(msg)
+
+    llm_messages.append({"role": "user", "content": query})
 
     completion = client.chat.completions.create(
-        model="gpt-4.1",
-        messages=[{"role": "user", "content": prompt}]
+        model="gpt-4o-mini",
+        messages=llm_messages
     )
+    print(history)
     return completion.choices[0].message.content
+
 
 
 if __name__ == "__main__":

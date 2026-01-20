@@ -325,12 +325,23 @@ async def chat_api(request: Request, artwork_id: str, user_message: str = Form(.
         # Merge with RIJKS_CACHE data if available
         cache_meta = RIJKS_CACHE.get()
         rijks_meta = cache_meta if cache_meta else metadata_block
-        print(messages)
+        #print(messages)
         # Build full prompt with metadata
         #full_messages = build_messages(cfg, STYLE_EXAMPLES, messages, name=name, rijks_meta=rijks_meta)
-        full_messages = answer(user_message, artwork["title"], artwork["artist"], artwork_id, persona_chunks)
+        #full_messages = answer(user_message, artwork["title"], artwork["artist"], artwork_id, persona_chunks)
         # Generate response
-        assistant_response = generate_reply(full_messages)
+        #assistant_response = generate_reply(full_messages)
+        
+        messages.append({"role": "user", "content": user_message})
+
+        assistant_response = answer(
+        query=user_message,
+        title=artwork["title"],
+        creator=artwork["artist"],
+        painting_id=artwork_id,
+        persona_chunks=persona_chunks,
+        messages_history=messages  # ← Pass full conversation!
+        )
         
         # Add to history
         messages.append({"role": "assistant", "content": assistant_response})
@@ -340,7 +351,7 @@ async def chat_api(request: Request, artwork_id: str, user_message: str = Form(.
             status_code=200,
             content={
                 "success": True,
-                "response": full_messages,
+                "response": assistant_response,
                 "questions_remaining": get_questions_remaining(messages),
                 "limit_reached": is_limit_reached(messages)
             }
