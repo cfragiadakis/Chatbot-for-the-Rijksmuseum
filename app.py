@@ -14,6 +14,7 @@ from style_loader import load_letter_texts, build_style_examples
 from museum_api import fetch_artwork_metadata, RijksCache
 from build_chroma_db import embed
 from question_answering import *
+from config import PRESETS
 
 # Load environment variables from .env file
 load_dotenv()
@@ -51,14 +52,7 @@ def build_artworks_from_json(extracted_data):
             "material": data.get("material", []),
             "source": data.get("source", ""),
             "initial_message": f"Welcome! I am {artist}. You are viewing my work '{data.get('title', 'this artwork')}'. What would you like to know?",
-            "presets": [
-                "What inspired this work?",
-                "Tell me about your technique",
-                "What was your artistic vision?",
-                "What does this artwork mean?",
-                "How long did this take to create?",
-                "What is the story behind this?"
-            ],
+            "presets": PRESETS[artwork_id],
             "system_prompt": f"You are {artist}, speaking about your artwork '{data.get('title', 'this piece')}' from {data.get('year', 'this period')}. Speak as the artist would, sharing insights about techniques, symbolism, and artistic vision. Be warm, engaging, and historically accurate."
         }
     return artworks
