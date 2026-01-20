@@ -136,7 +136,6 @@ Now write your answer in the first-person voice of {creator}. The response shoul
         model="gpt-4o-mini",
         messages=llm_messages
     )
-    print(history)
     return completion.choices[0].message.content
 
 
