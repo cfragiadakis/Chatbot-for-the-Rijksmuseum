@@ -565,6 +565,157 @@
             width: 18px;
             height: 18px;
         }
+
+        /* ========== INLINE LIMIT MESSAGE (replaces input) ========== */
+        .limit-inline {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            background: rgba(220, 38, 38, 0.1);
+            border: 1px solid rgba(220, 38, 38, 0.25);
+            border-radius: 28px;
+            padding: 12px 12px 12px 20px;
+        }
+
+        .limit-inline-text {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--gray-300);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .limit-inline-text svg {
+            width: 20px;
+            height: 20px;
+            stroke: var(--red);
+            flex-shrink: 0;
+        }
+
+        .limit-inline-btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 12px 24px;
+            background: var(--orange);
+            color: var(--white);
+            text-decoration: none;
+            border-radius: 24px;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .limit-inline-btn:hover {
+            background: var(--orange-light);
+            transform: scale(1.02);
+        }
+
+        /* ========== LIMIT MODAL POPUP ========== */
+        .limit-modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .limit-modal-overlay.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .limit-modal {
+            background: var(--card-bg);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 40px 32px;
+            max-width: 420px;
+            width: 90%;
+            text-align: center;
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .limit-modal-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 20px;
+            background: rgba(220, 38, 38, 0.15);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .limit-modal-icon svg {
+            width: 32px;
+            height: 32px;
+            stroke: var(--red);
+        }
+
+        .limit-modal h3 {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--white);
+            margin-bottom: 12px;
+        }
+
+        .limit-modal p {
+            font-size: 15px;
+            color: var(--gray-400);
+            margin-bottom: 28px;
+            line-height: 1.6;
+        }
+
+        .limit-modal-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 16px 32px;
+            background: var(--orange);
+            color: var(--white);
+            text-decoration: none;
+            border-radius: 28px;
+            font-size: 15px;
+            font-weight: 600;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .limit-modal-btn:hover {
+            background: var(--orange-light);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(230, 81, 0, 0.4);
+        }
+
+        .limit-modal-btn svg {
+            width: 20px;
+            height: 20px;
+        }
  
         /* ========== ERROR MESSAGE ========== */
         .error-message {
@@ -709,8 +860,8 @@
                     <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
                     <line x1="12" y1="17" x2="12.01" y2="17"></line>
                 </svg>
-                <span class="counter-text {% if questions_remaining <= 1 %}warning{% endif %}" id="counter-text">
-                    <span class="counter-number" id="counter-number">{{ questions_remaining }}</span>/5 questions
+                <span class="counter-text {% if (5 - questions_remaining) >= 4 %}warning{% endif %}" id="counter-text">
+                    <span class="counter-number" id="counter-number">{{ 5 - questions_remaining }}</span>/5 questions
                 </span>
             </div>
             <a href="/chat/{{ artwork.id }}/reset" class="logo">RIJKSMUSEUM</a>
@@ -820,7 +971,8 @@
     const artworkId = "{{ artwork.id }}";
     const artistName = "{{ artwork.artist }}";
     const artworkImage = "{{ artwork.image }}";
-    let questionsRemaining = "{{ questions_remaining }}";
+    let questionsRemaining = parseInt("{{ questions_remaining }}");
+    let questionsTaken = 5 - questionsRemaining;
     
     const chatbox = document.getElementById('chatbox');
     const form = document.getElementById('chat-form');
@@ -892,45 +1044,45 @@
         typingIndicator.classList.remove('active');
     }
     
-    // Update questions counter
-    function updateCounter(remaining) {
-        questionsRemaining = remaining;
+    // Update counter (increment when user asks a question)
+    function incrementCounter() {
+        questionsTaken++;
         if (counterNumber) {
-            counterNumber.textContent = remaining;
+            counterNumber.textContent = questionsTaken;
         }
-        if (counterText && remaining <= 1) {
+        if (counterText && questionsTaken >= 4) {
             counterText.classList.add('warning');
         }
     }
     
-    // Show limit reached UI
+    // Check if limit reached (don't sync from server, use client tracking)
+    function isLimitReached() {
+        return questionsTaken >= 5;
+    }
+    
+    // Show limit reached UI (replaces input area at bottom)
     function showLimitReached() {
         // Hide presets and input
         if (presetsSection) presetsSection.style.display = 'none';
-        if (inputArea) inputArea.style.display = 'none';
         
-        // Add limit reached message
-        const limitDiv = document.createElement('div');
-        limitDiv.className = 'limit-reached';
-        limitDiv.innerHTML = `
-            <div class="limit-reached-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="12" y1="8" x2="12" y2="12"></line>
-                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                </svg>
-            </div>
-            <h3>Conversation Complete</h3>
-            <p>You've used all 5 questions with ${artistName}.<br>Start a new conversation or explore another artwork.</p>
-            <a href="/chat/${artworkId}/reset" class="new-chat-btn">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
-                    <path d="M3 3v5h5"></path>
-                </svg>
-                Start New Chat
-            </a>
-        `;
-        chatbox.parentNode.appendChild(limitDiv);
+        // Replace input area with limit message
+        if (inputArea) {
+            inputArea.innerHTML = `
+                <div class="limit-inline">
+                    <div class="limit-inline-text">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg>
+                        <span>You've used all 5 questions</span>
+                    </div>
+                    <a href="/" class="limit-inline-btn">
+                        Back to Collection
+                    </a>
+                </div>
+            `;
+        }
     }
     
     // Show error message
@@ -947,8 +1099,18 @@
     async function sendMessage(message) {
         if (!message.trim()) return;
         
-        // Add user message
+        // Check if limit already reached before sending
+        if (questionsTaken >= 5) {
+            showLimitReached();
+            return;
+        }
+        
+        // Add user message and increment counter immediately
         addMessage('user', message);
+        incrementCounter();
+        
+        // Check if this was the 5th question - disable input immediately
+        const isLastQuestion = questionsTaken >= 5;
         
         // Clear and disable input
         if (userInput) {
@@ -975,9 +1137,9 @@
             
             if (data.success) {
                 addMessage('assistant', data.response);
-                updateCounter(data.questions_remaining);
                 
-                if (data.limit_reached) {
+                // Show limit reached after the 5th answer is displayed
+                if (isLastQuestion || data.limit_reached) {
                     showLimitReached();
                 } else {
                     if (userInput) {
@@ -988,27 +1150,38 @@
                 }
             } else {
                 showError(data.message || 'An error occurred. Please try again.');
-                if (userInput) {
-                    userInput.disabled = false;
-                    userInput.focus();
+                // Only re-enable if not at limit
+                if (!isLastQuestion) {
+                    if (userInput) {
+                        userInput.disabled = false;
+                        userInput.focus();
+                    }
+                    if (sendBtn) sendBtn.disabled = false;
                 }
-                if (sendBtn) sendBtn.disabled = false;
             }
             
         } catch (error) {
             console.error('Error:', error);
             hideTyping();
             showError('Failed to send message. Please try again.');
-            if (userInput) {
-                userInput.disabled = false;
-                userInput.focus();
+            // Only re-enable if not at limit
+            if (!isLastQuestion) {
+                if (userInput) {
+                    userInput.disabled = false;
+                    userInput.focus();
+                }
+                if (sendBtn) sendBtn.disabled = false;
             }
-            if (sendBtn) sendBtn.disabled = false;
         }
     }
     
     // Send preset question
     function sendPreset(question) {
+        // Check limit before sending preset
+        if (questionsTaken >= 5) {
+            showLimitReached();
+            return;
+        }
         sendMessage(question);
     }
     
