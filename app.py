@@ -290,15 +290,15 @@ async def chat_api(request: Request, artwork_id: str, user_message: str = Form(.
     
     try:
         # Check if limit reached
-        if is_limit_reached(messages):
-            return JSONResponse(
-                status_code=429,
-                content={
-                    "success": False,
-                    "error": "limit_reached",
-                    "message": f"You've reached the maximum of {MAX_QUESTIONS} questions."
-                }
-            )
+        # if is_limit_reached(messages):
+        #     return JSONResponse(
+        #         status_code=429,
+        #         content={
+        #             "success": False,
+        #             "error": "limit_reached",
+        #             "message": f"You've reached the maximum of {MAX_QUESTIONS} questions."
+        #         }
+        #     )
         
         # Get artwork metadata from extracted_data
         # Build metadata block from our JSON data
