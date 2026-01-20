@@ -153,4 +153,4 @@ if __name__ == "__main__":
     creator = all_data[painting_id]['artist']
     logger.info(title, creator, painting_id)
     question = input('Please ask your question for painting {title} by {creator}: '.format(title=title, creator=creator))
-    logger.info(answer(question, title, creator, painting_id) )
+    logger.info(answer(question, title, creator, painting_id, persona_chunks))
