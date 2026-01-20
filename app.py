@@ -65,13 +65,6 @@ def build_artworks_from_json(extracted_data):
 
 ARTWORKS = build_artworks_from_json(EXTRACTED_DATA)
 
-# ensure that we retrieve documents only for the specific artwork, or the artist, or descriptive info of his relevant artworks
-
-
-if cfg.get("style_examples", {}).get("enabled", False):
-    STYLE_TEXTS = load_letter_texts(cfg)
-    STYLE_EXAMPLES = build_style_examples(cfg, STYLE_TEXTS)
-
 # FastAPI app setup with OpenAI client
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 app = FastAPI()
