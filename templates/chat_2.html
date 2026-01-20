@@ -385,47 +385,103 @@
             30% { transform: translateY(-6px); background: var(--orange); }
         }
  
-        /* ========== SUGGESTED QUESTIONS ========== */
+        /* ========== SUGGESTED QUESTIONS DROPDOWN ========== */
         .presets {
-            padding: 16px 20px;
+            padding: 12px 20px;
             background: var(--dark-bg);
             border-top: 1px solid rgba(255, 255, 255, 0.08);
             flex-shrink: 0;
         }
- 
-        .presets-label {
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--gray-500);
-            margin-bottom: 12px;
+
+        .preset-dropdown-container {
+            position: relative;
         }
- 
-        .preset-grid {
+
+        .preset-dropdown-btn {
             display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
- 
-        .preset-btn {
-            background: transparent;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--card-bg);
             border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 12px;
             color: var(--gray-300);
-            padding: 10px 16px;
             font-family: inherit;
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.2s;
-            border-radius: 20px;
         }
- 
-        .preset-btn:hover {
-            background: var(--orange);
+
+        .preset-dropdown-btn:hover {
             border-color: var(--orange);
+        }
+
+        .preset-dropdown-btn svg {
+            width: 18px;
+            height: 18px;
+            stroke: var(--gray-400);
+            transition: transform 0.2s;
+        }
+
+        .preset-dropdown-btn.active svg {
+            transform: rotate(180deg);
+        }
+
+        .preset-dropdown-list {
+            display: none;
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            right: 0;
+            margin-bottom: 8px;
+            background: var(--card-bg);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 12px;
+            overflow: hidden;
+            z-index: 50;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .preset-dropdown-list.active {
+            display: block;
+            animation: dropdownSlide 0.2s ease;
+        }
+
+        @keyframes dropdownSlide {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .preset-dropdown-item {
+            width: 100%;
+            padding: 14px 16px;
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            color: var(--gray-300);
+            font-family: inherit;
+            font-size: 14px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .preset-dropdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .preset-dropdown-item:hover {
+            background: var(--orange);
             color: var(--white);
-            transform: translateY(-1px);
         }
  
         /* ========== INPUT AREA ========== */
@@ -936,13 +992,20 @@
             </a>
         </div>
         {% else %}
-        <!-- Suggested Questions -->
+        <!-- Suggested Questions Dropdown -->
         <div class="presets" id="presets-section">
-            <div class="presets-label">Suggested Questions</div>
-            <div class="preset-grid" id="preset-grid">
-                {% for question in artwork.presets %}
-                    <button type="button" class="preset-btn" onclick="sendPreset('{{ question }}')">{{ question }}</button>
-                {% endfor %}
+            <div class="preset-dropdown-container">
+                <button type="button" class="preset-dropdown-btn" id="preset-dropdown-btn" onclick="toggleDropdown()">
+                    <span>Suggested Questions</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </button>
+                <div class="preset-dropdown-list" id="preset-dropdown-list">
+                    {% for question in artwork.presets %}
+                        <button type="button" class="preset-dropdown-item" onclick="selectPreset('{{ question }}')">{{ question }}</button>
+                    {% endfor %}
+                </div>
             </div>
         </div>
  
@@ -1184,6 +1247,38 @@
         }
         sendMessage(question);
     }
+    
+    // Dropdown functions
+    const dropdownBtn = document.getElementById('preset-dropdown-btn');
+    const dropdownList = document.getElementById('preset-dropdown-list');
+    
+    function toggleDropdown() {
+        if (dropdownBtn && dropdownList) {
+            dropdownBtn.classList.toggle('active');
+            dropdownList.classList.toggle('active');
+        }
+    }
+    
+    function closeDropdown() {
+        if (dropdownBtn && dropdownList) {
+            dropdownBtn.classList.remove('active');
+            dropdownList.classList.remove('active');
+        }
+    }
+    
+    function selectPreset(question) {
+        closeDropdown();
+        sendPreset(question);
+    }
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        if (dropdownBtn && dropdownList) {
+            if (!dropdownBtn.contains(e.target) && !dropdownList.contains(e.target)) {
+                closeDropdown();
+            }
+        }
+    });
     
     // Form submission
     if (form) {
