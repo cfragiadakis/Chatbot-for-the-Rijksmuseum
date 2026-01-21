@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Collection | Rijksmuseum</title>
+    <link rel="icon" href="/static/figs/favicon.ico">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --black: #000000;
+            --dark-bg: #111111;
+            --card-bg: #1a1a1a;
+            --white: #ffffff;
+            --gray-100: #f5f5f5;
+            --gray-200: #e5e5e5;
+            --gray-300: #d4d4d4;
+            --gray-400: #a3a3a3;
+            --gray-500: #737373;
+            --gray-600: #525252;
+            --yellow: #f5c518;
+            --orange: #E65100;
+            --orange-hover: #FF6D00;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--black);
+            color: var(--white);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ========== HEADER ========== */
+        .header {
+            background: var(--black);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-main {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            height: 72px;
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: var(--white);
+            font-weight: 700;
+            font-size: 22px;
+            letter-spacing: -0.5px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            margin-right: 12px;
+        }
+
+        .nav-main {
+            display: flex;
+            align-items: center;
+            gap: 36px;
+        }
+
+        .nav-main a {
+            color: var(--white);
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 500;
+            opacity: 0.85;
+            transition: opacity 0.2s;
+        }
+
+        .nav-main a:hover {
+            opacity: 1;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .btn-tickets {
+            background: var(--yellow);
+            color: var(--black);
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn-tickets:hover {
+            background: #e6b800;
+            transform: translateY(-1px);
+        }
+
+        /* ========== SEARCH BAR ========== */
+        .search-section {
+            background: var(--black);
+            padding: 24px 40px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .search-container {
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        .search-wrapper {
+            position: relative;
+            max-width: 600px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 16px 20px 16px 52px;
+            font-size: 16px;
+            font-family: inherit;
+            background: var(--dark-bg);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 8px;
+            color: var(--white);
+            transition: all 0.2s;
+        }
+
+        .search-input::placeholder {
+            color: var(--gray-500);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: rgba(255,255,255,0.4);
+            background: #1a1a1a;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            stroke: var(--gray-500);
+        }
+
+        .results-info {
+            margin-top: 16px;
+            font-size: 14px;
+            color: var(--gray-500);
+        }
+
+        /* ========== MAIN GRID ========== */
+        .main-content {
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 32px 40px 80px;
+        }
+
+        /* Masonry-style grid */
+        .artwork-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        /* ========== ARTWORK CARD ========== */
+        .artwork-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .artwork-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.5);
+            border-color: rgba(230, 81, 0, 0.3);
+        }
+
+        .artwork-image-wrapper {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .artwork-image {
+            width: 100%;
+            height: 320px;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.6s;
+        }
+
+        .artwork-card:hover .artwork-image {
+            transform: scale(1.05);
+        }
+
+        .plus-button {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 42px;
+            height: 42px;
+            background: rgba(0,0,0,0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .plus-button:hover {
+            background: rgba(0,0,0,0.9);
+            border-color: var(--orange);
+            transform: scale(1.08);
+        }
+
+        .plus-icon {
+            width: 20px;
+            height: 20px;
+            stroke: var(--white);
+            stroke-width: 2.5;
+        }
+
+        /* ========== DROPDOWN MENU ========== */
+        .dropdown-menu {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.97);
+            backdrop-filter: blur(16px);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            z-index: 20;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .dropdown-menu.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .dropdown-header {
+            padding: 16px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .close-btn {
+            width: 36px;
+            height: 36px;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-btn:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: var(--orange);
+        }
+
+        .close-btn svg {
+            width: 18px;
+            height: 18px;
+            stroke: var(--white);
+        }
+
+        .dropdown-items {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 0 24px 24px;
+            gap: 8px;
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 16px 20px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            color: var(--white);
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 500;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .dropdown-item:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.25);
+            transform: translateX(4px);
+        }
+
+        .dropdown-item svg {
+            width: 20px;
+            height: 20px;
+            stroke: var(--gray-400);
+            flex-shrink: 0;
+        }
+
+        .dropdown-item.chat-action {
+            background: linear-gradient(135deg, rgba(230,81,0,0.15), rgba(255,109,0,0.1));
+            border-color: rgba(230,81,0,0.3);
+        }
+
+        .dropdown-item.chat-action:hover {
+            background: linear-gradient(135deg, rgba(230,81,0,0.25), rgba(255,109,0,0.15));
+            border-color: var(--orange);
+        }
+
+        .dropdown-item.chat-action svg {
+            stroke: var(--orange);
+        }
+
+        .chat-badge {
+            position: absolute;
+            right: 20px;
+            background: var(--orange);
+            color: var(--white);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* ========== CARD INFO ========== */
+        .card-info {
+            padding: 20px;
+        }
+
+        .card-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: var(--white);
+            margin-bottom: 6px;
+            line-height: 1.3;
+        }
+
+        .card-artist {
+            font-size: 14px;
+            color: var(--gray-400);
+            font-weight: 500;
+        }
+
+        /* ========== FOOTER ========== */
+        .footer {
+            background: var(--dark-bg);
+            border-top: 1px solid rgba(255,255,255,0.08);
+            padding: 48px 40px 32px;
+            margin-top: auto;
+        }
+
+        .footer-content {
+            max-width: 1800px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .footer-section h4 {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--white);
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .footer-section p,
+        .footer-section a {
+            font-size: 14px;
+            color: var(--gray-400);
+            line-height: 1.8;
+            display: block;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .footer-section a:hover {
+            color: var(--orange);
+        }
+
+        .footer-bottom {
+            max-width: 1800px;
+            margin: 0 auto;
+            padding-top: 32px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-bottom p {
+            font-size: 13px;
+            color: var(--gray-500);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 16px;
+        }
+
+        .social-links a {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.05);
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+
+        .social-links a:hover {
+            background: var(--orange);
+            transform: translateY(-2px);
+        }
+
+        .social-links svg {
+            width: 18px;
+            height: 18px;
+            fill: var(--white);
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 1200px) {
+            .artwork-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-main {
+                padding: 0 20px;
+            }
+
+            .nav-main {
+                display: none;
+            }
+
+            .artwork-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 16px;
+            }
+
+            .main-content {
+                padding: 24px 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .artwork-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-main">
+            <a href="/" class="logo">
+                <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="14" width="7" height="7"></rect>
+                    <rect x="3" y="14" width="7" height="7"></rect>
+                </svg>
+                RIJKSMUSEUM
+            </a>
+
+            <nav class="nav-main">
+                <a href="#">Collection</a>
+                <a href="#">Exhibitions</a>
+                <a href="#">Visit</a>
+                <a href="#">Stories</a>
+            </nav>
+
+            <div class="header-right">
+                <a href="#" class="btn-tickets">Buy tickets</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Search Section -->
+    <section class="search-section">
+        <div class="search-container">
+            <div class="search-wrapper">
+                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="m21 21-4.35-4.35"></path>
+                </svg>
+                <input 
+                    type="text" 
+                    class="search-input" 
+                    placeholder="Search by artist, title, or keyword..."
+                >
+            </div>
+            <div class="results-info">
+                Showing {{ artworks|length }} masterpiece{% if artworks|length != 1 %}s{% endif %}
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="artwork-grid">
+            {% for artwork_id, artwork in artworks.items() %}
+            <!-- Artwork Card -->
+            <article class="artwork-card">
+                <div class="artwork-image-wrapper">
+                    <img 
+                        src="{{ artwork.image }}" 
+                        alt="{{ artwork.title }}" 
+                        class="artwork-image"
+                        
+                    >
+                    <button class="plus-button" onclick="toggleDropdown(this)">
+                        <svg class="plus-icon" viewBox="0 0 24 24" fill="none">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                    </button>
+                    <div class="dropdown-menu">
+                        <div class="dropdown-header">
+                            <button class="close-btn" onclick="closeDropdown(this)">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="dropdown-items">
+                            <a href="#" class="dropdown-item">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                                </svg>
+                                Save to collection
+                            </a>
+                            <a href="#" class="dropdown-item">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="18" cy="5" r="3"></circle>
+                                    <circle cx="6" cy="12" r="3"></circle>
+                                    <circle cx="18" cy="19" r="3"></circle>
+                                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                                </svg>
+                                Share
+                            </a>
+                            <a href="#" class="dropdown-item">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="7 10 12 15 17 10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                </svg>
+                                Download
+                            </a>
+                            <!-- CRITICAL: Use dynamic artwork_id here -->
+                            <a href="/chat/{{ artwork_id }}" class="dropdown-item chat-action">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                </svg>
+                                Chat with artist
+                                <span class="chat-badge">New</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-info">
+                    <h3 class="card-title">{{ artwork.title }}</h3>
+                    <p class="card-artist">{{ artwork.artist }}</p>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>Visit</h4>
+                <p>Open daily 9am – 5pm</p>
+                <p>Museumstraat 1, Amsterdam</p>
+            </div>
+            <div class="footer-section">
+                <h4>About</h4>
+                <a href="#">About us</a>
+                <a href="#">Press</a>
+                <a href="#">Careers</a>
+                <a href="#">Contact</a>
+            </div>
+            <div class="footer-section">
+                <h4>Support</h4>
+                <a href="#">Donate</a>
+                <a href="#">Membership</a>
+                <a href="#">Corporate partners</a>
+            </div>
+            <div class="footer-section">
+                <h4>Explore</h4>
+                <a href="#">Collection</a>
+                <a href="#">Stories</a>
+                <a href="#">Research</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2025 Rijksmuseum Amsterdam</p>
+            <div class="social-links">
+                <a href="#" aria-label="Instagram">
+                    <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                </a>
+                <a href="#" aria-label="Facebook">
+                    <svg viewBox="0 0 24 24"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z"/></svg>
+                </a>
+                <a href="#" aria-label="YouTube">
+                    <svg viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>
+                </a>
+                <a href="#" aria-label="LinkedIn">
+                    <svg viewBox="0 0 24 24"><path d="M4.98 3.5c0 1.381-1.11 2.5-2.48 2.5s-2.48-1.119-2.48-2.5c0-1.38 1.11-2.5 2.48-2.5s2.48 1.12 2.48 2.5zm.02 4.5h-5v16h5v-16zm7.982 0h-4.968v16h4.969v-8.399c0-4.67 6.029-5.052 6.029 0v8.399h4.988v-10.131c0-7.88-8.922-7.593-11.018-3.714v-2.155z"/></svg>
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function toggleDropdown(button) {
+            const card = button.closest('.artwork-card');
+            const dropdown = card.querySelector('.dropdown-menu');
+            
+            // Close all other dropdowns
+            document.querySelectorAll('.dropdown-menu.active').forEach(menu => {
+                if (menu !== dropdown) {
+                    menu.classList.remove('active');
+                    const otherCard = menu.closest('.artwork-card');
+                    const otherBtn = otherCard.querySelector('.plus-button');
+                    otherBtn.style.opacity = '';
+                    otherBtn.style.pointerEvents = '';
+                }
+            });
+
+            dropdown.classList.toggle('active');
+            
+            if (dropdown.classList.contains('active')) {
+                button.style.opacity = '0';
+                button.style.pointerEvents = 'none';
+            }
+        }
+
+        function closeDropdown(closeBtn) {
+            const card = closeBtn.closest('.artwork-card');
+            const dropdown = card.querySelector('.dropdown-menu');
+            const plusBtn = card.querySelector('.plus-button');
+            
+            dropdown.classList.remove('active');
+            plusBtn.style.opacity = '';
+            plusBtn.style.pointerEvents = '';
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.artwork-card')) {
+                document.querySelectorAll('.dropdown-menu.active').forEach(menu => {
+                    menu.classList.remove('active');
+                    const card = menu.closest('.artwork-card');
+                    const plusBtn = card.querySelector('.plus-button');
+                    plusBtn.style.opacity = '';
+                    plusBtn.style.pointerEvents = '';
+                });
+            }
+        });
+    </script>
+</body>
+</html>
