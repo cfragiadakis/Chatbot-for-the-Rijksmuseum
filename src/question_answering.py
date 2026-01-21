@@ -94,6 +94,7 @@ def retrieve(query: str, creator: str, painting_id: str, k: int = 8) -> Dict[str
 
 
 def answer(query, title, creator, painting_id, persona_chunks, messages_history=None):
+    logger.info(f'Question: {query}')
     persona_style_snippets = sample_persona_chunks(persona_chunks, creator, 5)
     results = retrieve(query, creator, painting_id, k=10)
     context = "\n\n".join(results["documents"][0])
@@ -118,7 +119,7 @@ User question:
 Context:
 {context}
 
-Now write your answer in the first-person voice of {creator}. The response should be 50-150 words.
+Now write your answer in the first-person voice of {creator}. The response should be 50-100 words.
 """.strip()
 
     history = messages_history or []
@@ -136,6 +137,7 @@ Now write your answer in the first-person voice of {creator}. The response shoul
         model="gpt-4o-mini",
         messages=llm_messages
     )
+    logger.info(f'Answer: {completion.choices[0].message.content}')
     return completion.choices[0].message.content
 
 
