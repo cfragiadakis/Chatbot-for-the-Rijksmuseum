@@ -9,11 +9,13 @@ from dotenv import load_dotenv
 from openai import OpenAI
 import yaml
 import chromadb, json
-from config import PRESETS, chroma_db_path, collection_name, extracted_data_path
+from config import PRESETS, chroma_db_path, collection_name, extracted_data_path, pred_embeddings_path
 import sys
 from pathlib import Path
 from src.museum_api import fetch_artwork_metadata, RijksCache
 from src.question_answering import *
+from src.questions_embeddings import retrieve_similar_questions
+
 sys.path.append(str(Path(__file__).parent / "src"))
 
 
@@ -29,6 +31,10 @@ RIJKS_META = None
 
 with open(extracted_data_path, "r", encoding="utf-8") as f:
     EXTRACTED_DATA = json.load(f)
+
+with open(pred_embeddings_path, "r", encoding="utf-8") as f:
+    PRED_QUESTIONS_EMB = json.load(f)
+
 STYLE_TEXTS = []
 STYLE_EXAMPLES = []
 
@@ -219,6 +225,45 @@ def get_preset_responses() -> list[str]:
     ]
 
 # ============== ROUTES ==============
+@app.post("/chat/{artwork_id}/presets")
+async def update_presets(
+    artwork_id: str,
+    payload: dict
+):
+    """
+    payload = {
+        "question": str,
+        "is_predefined": bool,
+        "index": int | null
+    }
+    """
+    try:
+        if payload.get("is_predefined", False):
+            results = retrieve_similar_questions(
+                query=payload["index"],
+                art_id=artwork_id,
+                pred_questions_embeddings=PRED_QUESTIONS_EMB,
+                is_predefined=True
+            )
+        else:
+            results = retrieve_similar_questions(
+                query=payload["question"],
+                art_id=artwork_id,
+                pred_questions_embeddings=PRED_QUESTIONS_EMB,
+                is_predefined=False
+            )
+
+        return {
+            "success": True,
+            "presets": [r["question"] for r in results]
+        }
+
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "error": str(e)}
+        )
+
 
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):

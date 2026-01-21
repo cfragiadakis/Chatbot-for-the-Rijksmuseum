@@ -1003,7 +1003,15 @@
                 </button>
                 <div class="preset-dropdown-list" id="preset-dropdown-list">
                     {% for question in artwork.presets %}
-                        <button type="button" class="preset-dropdown-item" onclick="selectPreset('{{ question }}')">{{ question }}</button>
+                    <button
+                        type="button"
+                        class="preset-dropdown-item"
+                        data-question="{{ question }}"
+                        data-index="{{ loop.index0 }}"
+                        onclick="selectPreset(this.dataset.question, this.dataset.index)"
+                    >
+                        {{ question }}
+                    </button>
                     {% endfor %}
                 </div>
             </div>
@@ -1158,6 +1166,32 @@
         setTimeout(() => errorDiv.remove(), 5000);
     }
     
+    async function refreshPresets(question, index=null, isPredefined=false) {
+        const response = await fetch(`/chat/${artworkId}/presets`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                question: question,
+                index: index,
+                is_predefined: isPredefined
+            })
+        });
+
+        const data = await response.json();
+        if (!data.success) return;
+
+        const dropdown = document.getElementById('preset-dropdown-list');
+        dropdown.innerHTML = '';
+
+        data.presets.forEach(q => {
+            const btn = document.createElement('button');
+            btn.className = 'preset-dropdown-item';
+            btn.textContent = q;
+            btn.onclick = () => selectPreset(q);
+            dropdown.appendChild(btn);
+        });
+    }
+
     // Send message
     async function sendMessage(message) {
         if (!message.trim()) return;
@@ -1199,9 +1233,13 @@
             hideTyping();
             
             if (data.success) {
+                // 1. Show assistant reply
                 addMessage('assistant', data.response);
-                
-                // Show limit reached after the 5th answer is displayed
+
+                // 2. Refresh suggested questions based on user query
+                refreshPresets(message, null, false);
+
+                // 3. Handle limit / re-enable input
                 if (isLastQuestion || data.limit_reached) {
                     showLimitReached();
                 } else {
@@ -1211,17 +1249,8 @@
                     }
                     if (sendBtn) sendBtn.disabled = false;
                 }
-            } else {
-                showError(data.message || 'An error occurred. Please try again.');
-                // Only re-enable if not at limit
-                if (!isLastQuestion) {
-                    if (userInput) {
-                        userInput.disabled = false;
-                        userInput.focus();
-                    }
-                    if (sendBtn) sendBtn.disabled = false;
-                }
             }
+
             
         } catch (error) {
             console.error('Error:', error);
@@ -1266,10 +1295,12 @@
         }
     }
     
-    function selectPreset(question) {
+    function selectPreset(question, index=null) {
         closeDropdown();
         sendPreset(question);
+        refreshPresets(question, index, true);
     }
+
     
     // Close dropdown when clicking outside
     document.addEventListener('click', function(e) {
