@@ -4,29 +4,30 @@ from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
-import os, time
+import os
 from dotenv import load_dotenv
 from openai import OpenAI
 import yaml
-from pathlib import Path
 import chromadb, json
-from style_loader import load_letter_texts, build_style_examples
-from museum_api import fetch_artwork_metadata, RijksCache
-from build_chroma_db import embed
-from question_answering import *
-from config import PRESETS
+from config import PRESETS, chroma_db_path, collection_name, extracted_data_path
+import sys
+from pathlib import Path
+from src.museum_api import fetch_artwork_metadata, RijksCache
+from src.question_answering import *
+sys.path.append(str(Path(__file__).parent / "src"))
+
 
 # Load environment variables from .env file
 load_dotenv()
 
 # Load configuration
-cfg = yaml.safe_load(Path("configs/config.yml").read_text(encoding="utf-8"))
+cfg = yaml.safe_load(Path("src/configs/config.yml").read_text(encoding="utf-8"))
 
 # Globals
 RIJKS_CACHE = RijksCache()
 RIJKS_META = None
 
-with open("Data/extracted_data.json", "r", encoding="utf-8") as f:
+with open(extracted_data_path, "r", encoding="utf-8") as f:
     EXTRACTED_DATA = json.load(f)
 STYLE_TEXTS = []
 STYLE_EXAMPLES = []
@@ -63,8 +64,8 @@ ARTWORKS = build_artworks_from_json(EXTRACTED_DATA)
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 app = FastAPI()
 
-chroma = chromadb.PersistentClient(path="./db_rijksmuseum")
-collection = chroma.get_or_create_collection("rijksmuseum_data")
+chroma = chromadb.PersistentClient(path=chroma_db_path)
+collection = chroma.get_or_create_collection(collection_name)
 
 # Startup event to fetch and cache Rijksmuseum metadata
 @app.on_event("startup")
@@ -84,10 +85,10 @@ async def _startup():
     RIJKS_CACHE.set(RIJKS_META, ttl_seconds=int(rcfg.get("cache_ttl_seconds", 86400)))
 
 # Needed for cookie-based sessions (stores chat history per browser)
-app.add_middleware(SessionMiddleware, secret_key=os.environ["SESSION_SECRET"])
+app.add_middleware(SessionMiddleware, secret_key=os.environ["OPENAI_API_KEY"])
 
-templates = Jinja2Templates(directory="templates")
-app.mount("/static", StaticFiles(directory="static"), name="static")
+templates = Jinja2Templates(directory="src/templates")
+app.mount("/static", StaticFiles(directory="src/static"), name="static")
 
 sources = {
 "Vincent van Gogh": [van_gogh_letters_path],
