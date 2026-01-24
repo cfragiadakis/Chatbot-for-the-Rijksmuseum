@@ -33,3 +33,20 @@ To launch the web interface:
 ```bash
 uvicorn app:app --reload
 ```
+
+You can also run the app using Docker:
+
+Build image
+
+```docker build -t rijksmuseum-app . ```
+
+
+Run container
+
+```
+docker run -p 8000:8000 \
+  -e OPENAI_API_KEY="your key" \
+  rijksmuseum-app
+```
+
+The app will be available at http://localhost:8000
