@@ -1,16 +1,20 @@
 # Chatbot for the Rijksmuseum
 
-First, install requirements:
+This project is part of the Data Systems Project at the University of Amsterdam and focuses on designing and evaluating a chatbot that enables users to explore artworks of the Rijksmuseum.
+
+To run the chatbot: 
+
+* Install requirements
 ```bash
 pip install -r requirements.txt
 ```
 * Add your .env file
 
-Retrieve museum and Wikipedia data for the selected artists (found in src/config.py):
+* Retrieve museum and Wikipedia data for the selected artists (found in src/config.py):
 ```bash
 python -m src.data_extraction
 ```
-Then build the Chroma vector database:
+* Then build the Chroma vector database:
 ```bash
 python -m src.build_chroma_db
 ```
@@ -21,11 +25,11 @@ python -m src.xml_parser
 ```
  and select 1 for the Dutch/French original version, or 2 for the translated English version.
 
-Generate embeddings for predefined artistic questions:
+* Generate embeddings for predefined artistic questions:
 ```bash
 python -m src.questions_embeddings
 ```
-Test the question-answering pipeline:
+* Test the question-answering pipeline:
 ```bash
 python -m src.question_answering
 ```
