@@ -4,10 +4,16 @@ This project is part of the Data Systems Project at the University of Amsterdam 
 
 To run the chatbot: 
 
+* clone the project
+```bash
+cd Chatbot-for-the-Rijksmuseum
+```
 * Install requirements
 ```bash
 pip install -r requirements.txt
 ```
+
+
 * Add your .env file
 
 * Retrieve museum and Wikipedia data for the selected artists (found in src/config.py):
