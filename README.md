@@ -35,7 +35,7 @@ python -m src.xml_parser
 ```bash
 python -m src.questions_embeddings
 ```
-* Test the question-answering pipeline:
+* Test the question-answering pipeline: (Optional)
 ```bash
 python -m src.question_answering
 ```
