@@ -6,7 +6,7 @@ This project is part of the Data Systems Project at the University of Amsterdam 
 
 To run the chatbot: 
 
-* clone the project
+* clone the project, then
 ```bash
 cd Chatbot-for-the-Rijksmuseum
 ```
