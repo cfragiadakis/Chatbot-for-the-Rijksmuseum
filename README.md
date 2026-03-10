@@ -2,6 +2,8 @@
 
 This project is part of the Data Systems Project at the University of Amsterdam and focuses on designing and evaluating a chatbot that enables users to explore artworks of the Rijksmuseum.
 
+![Chatbot Demo](demo.gif)
+
 To run the chatbot: 
 
 * clone the project
