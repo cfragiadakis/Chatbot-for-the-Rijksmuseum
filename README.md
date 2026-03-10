@@ -1,6 +1,6 @@
 # Chatbot for the Rijksmuseum
 
-This project is part of the Data Systems Project at the University of Amsterdam and focuses on designing and evaluating a chatbot that enables users to explore artworks of the Rijksmuseum.
+This project is part of the Data Systems Project at the University of Amsterdam and focuses on designing and evaluating a Retrieval-Augmented Generation (RAG) chatbot that enables users to explore artworks from the Rijksmuseum collection.
 
 ![Chatbot Demo](demo.gif)
 
